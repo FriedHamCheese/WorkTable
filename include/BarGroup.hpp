@@ -29,6 +29,9 @@ class BarGroup : public Fl_Group{
 	void show_window_for_editing_task(const Bar* const bar) const;
 	auto get_item_index(const Bar* const bar) const;
 	std::chrono::days get_days_from_interval() const noexcept;
+	
+	int current_date_label_xpos() const;
+	int xpos_right_of_next_interval_label() const;
 
 	Timescale zoomin_timescale() noexcept;
 	Timescale zoomout_timescale() noexcept;
@@ -51,7 +54,7 @@ class BarGroup : public Fl_Group{
 	
 	std::vector<std::unique_ptr<Bar>> bars;
 	Fl_Box current_date;
-	Fl_Box next_interval_date;	
+	Fl_Box next_interval_date;
 	
 	const std::chrono::year_month_day current_ymd;
 	
@@ -59,6 +62,10 @@ class BarGroup : public Fl_Group{
 	std::chrono::year_month_day next_interval;	
 	
 	static bool due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs);
+	
+	static constexpr int interval_label_yraise = 20;
+	static constexpr int interval_label_width = 70;
+	static constexpr int interval_label_height = 15;
 	
 };
 

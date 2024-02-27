@@ -17,7 +17,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	),
 	bar_group(BarGroup::xoffset, BarGroup::yoffset, BarGroup::width, BarGroup::height
 	),
-	new_task_button(bar_group.x(), ypos_below(bar_group), 
+	new_task_button(bar_group.current_date_label_xpos(), ypos_below(bar_group), 
 					MainWindow::button_width, MainWindow::button_height, "@filenew"
 	),
 	zoomin_button(
@@ -35,6 +35,11 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 		MainWindow::timescale_text_box_height
 	)
 {
+	this->zoomout_button.position(bar_group.xpos_right_of_next_interval_label() - MainWindow::button_width, this->zoomout_button.y());
+	this->zoomin_button.position(this->zoomout_button.x() - button_width, this->zoomin_button.y());
+	this->timescale_text_box.position(this->zoomin_button.x() - timescale_text_box_width - 10, this->timescale_text_box.y());
+	this->redraw();
+	
 	this->new_task_button.labelcolor(FL_GRAY);	
 	
 	this->timescale_text_box.align(FL_ALIGN_INSIDE | FL_ALIGN_RIGHT);

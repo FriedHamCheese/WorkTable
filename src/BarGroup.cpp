@@ -27,8 +27,12 @@
 
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
 :	Fl_Group(xpos, ypos, width, height),
-	current_date(xpos + 30, ypos_below(this) - 20, 50, 10),
-	next_interval_date(xpos + bar_max_width - 25, ypos_below(this) - 20, 50, 10),
+	current_date(xpos + 30, ypos_below(*this) - interval_label_yraise, 
+					interval_label_width, interval_label_height
+	),
+	next_interval_date(xpos + bar_max_width - (interval_label_width/2), current_date.y(), 
+						interval_label_width, interval_label_height
+	),
 	current_ymd(get_current_ymd()),
 	current_timescale(timescale::default_timescale),
 	next_interval(get_next_interval(current_ymd, current_timescale))
@@ -106,6 +110,13 @@ auto BarGroup::get_item_index(const Bar* const bar) const{
 	throw std::invalid_argument("Pointer passed to BarGroup::get_item_index does not exist in BarGroup::bars.");
 }
 
+int BarGroup::current_date_label_xpos() const{
+	return current_date.x();
+}
+int BarGroup::xpos_right_of_next_interval_label() const{
+	return xpos_right_of(next_interval_date);
+}
+
 std::chrono::days BarGroup::get_days_from_interval() const noexcept{
 	return delta_days(next_interval, current_ymd);
 }
@@ -143,12 +154,12 @@ void BarGroup::draw(){
 	fl_line(left_line_xpos,
 			this->y(), 
 			left_line_xpos, 
-			ypos_below(this) - 30
+			ypos_below(*this) - 30
 	);
 	fl_line(right_line_xpos, 
 			this->y(), 
 			right_line_xpos,
-			ypos_below(this) - 30
+			ypos_below(*this) - 30
 	);
 }
 
