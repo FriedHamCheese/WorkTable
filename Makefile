@@ -42,7 +42,7 @@ path_debug:
 $(EXECFILE): $(OBJFILES)
 	$(CXX) $(OBJFILES) $(LDFLAGS) -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERFILES) | $(OBJDIR)
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERFILES) Makefile | $(OBJDIR)
 	$(CXX) -c $< $(CXXFLAGS) -o $@
 	
 
