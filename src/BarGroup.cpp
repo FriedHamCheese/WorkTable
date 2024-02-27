@@ -27,7 +27,7 @@
 
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
 :	Fl_Group(xpos, ypos, width, height),
-	current_date(xpos + 30, ypos_below(*this) - interval_label_yraise, 
+	current_date(xpos + bar_xoffset - (interval_label_width/2), ypos_below(*this) - interval_label_yraise, 
 					interval_label_width, interval_label_height
 	),
 	next_interval_date(xpos + bar_max_width - (interval_label_width/2), current_date.y(), 
