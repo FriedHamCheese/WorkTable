@@ -12,6 +12,10 @@ inline int xpos_right_of(const Fl_Widget* const widget) noexcept{
 	return widget->x() + widget->w();
 }
 
+inline int xpos_center_of(const Fl_Widget* const widget) noexcept{
+	return widget->x() + (widget->w() / 2);
+}
+
 inline int ypos_below(const Fl_Widget& widget) noexcept{
 	return ypos_below(&widget);
 }

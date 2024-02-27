@@ -28,7 +28,7 @@
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
 :	Fl_Group(xpos, ypos, width, height),
 	current_date(xpos + 30, ypos_below(this) - 20, 50, 10),
-	next_interval_date(xpos_right_of(this) - 25, ypos_below(this) - 20, 50, 10),
+	next_interval_date(xpos + bar_max_width - 25, ypos_below(this) - 20, 50, 10),
 	current_ymd(get_current_ymd()),
 	current_timescale(timescale::default_timescale),
 	next_interval(get_next_interval(current_ymd, current_timescale))
@@ -138,7 +138,7 @@ void BarGroup::draw(){
 	Fl_Group::draw();
 	
 	const int left_line_xpos = this->x() + this->bar_xoffset;
-	const int right_line_xpos = xpos_right_of(this) - this->bar_xoffset;
+	const int right_line_xpos = this->x() +this->bar_max_width;
 	
 	fl_line(left_line_xpos,
 			this->y(), 
