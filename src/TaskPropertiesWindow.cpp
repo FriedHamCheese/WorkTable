@@ -71,6 +71,7 @@ void TaskPropertiesWindow::set_window_for_creating_task(){
 	this->label("Create a new task.");
 	this->delete_button.label("Cancel");
 	this->save_button.label("Create");	
+	this->warning_message.label("");	
 	
 	this->current_mode = TaskPropertiesWindow::Mode::CreateNewTask;
 }
