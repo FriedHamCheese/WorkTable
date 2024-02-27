@@ -10,9 +10,10 @@ HEADERFILES := $(wildcard $(HEADERDIR)/*.hpp)
 BINDIR := ./bin
 EXECFILE := $(BINDIR)/build.exe
 
+include user_fltk_flags
 CXX := $(CXX)
-CXXFLAGS := -I./include $(shell fltk-config --cxxflags) --std=c++20 -Wall
-LDFLAGS := $(shell fltk-config --ldflags)
+CXXFLAGS := -I./include $(FLTK_CXXFLAGS) --std=c++20 -Wall
+LDFLAGS := $(FLTK_LDFLAGS)
 
 .PHONY: all
 all: $(EXECFILE)
