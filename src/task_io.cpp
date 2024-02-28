@@ -121,7 +121,7 @@ std::vector<Task> get_tasks(){
 	
 		return taskstrs_to_tasks(taskstrs);
 	}
-	catch(std::exception& excp) throw excp;
+	catch(std::exception& excp){throw excp;}
 }
 
 //returns string version of number with always 2 digits.

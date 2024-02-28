@@ -12,7 +12,7 @@ EXECFILE := $(BINDIR)/build.exe
 
 include user_fltk_flags
 CXX := $(CXX)
-CXXFLAGS := -I./include $(FLTK_CXXFLAGS) --std=c++20 -Wall
+CXXFLAGS := -I./include $(FLTK_CXXFLAGS) --std=c++20 -Wall -pedantic
 LDFLAGS := $(FLTK_LDFLAGS)
 
 .PHONY: all

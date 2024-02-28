@@ -16,4 +16,8 @@ inline int ypos_below(const Fl_Widget& widget) noexcept{
 	return widget.y() + widget.h();
 }
 
+inline int xpos_center_by_point(const int widget_width, const int reference_xpos) noexcept{
+	return reference_xpos - (widget_width/2);
+}
+
 #endif

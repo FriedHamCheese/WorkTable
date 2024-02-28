@@ -15,7 +15,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 :	Fl_Window(xpos, ypos, width, height, window_title),
 	task_properties_window(TaskPropertiesWindow::width, TaskPropertiesWindow::height, this
 	),
-	bar_group(BarGroup::xoffset, BarGroup::yoffset, BarGroup::width, BarGroup::height
+	bar_group(50, 100, BarGroup::width, BarGroup::height
 	),
 	new_task_button(bar_group.current_date_label_xpos(), ypos_below(bar_group), 
 					MainWindow::button_width, MainWindow::button_height, "@filenew"
@@ -35,7 +35,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 		MainWindow::timescale_text_box_height
 	)
 {
-	this->zoomout_button.position(bar_group.xpos_right_of_next_interval_label() - MainWindow::button_width, this->zoomout_button.y());
+	this->zoomout_button.position(bar_group.xpos_right_of_interval_date_label() - MainWindow::button_width, this->zoomout_button.y());
 	this->zoomin_button.position(this->zoomout_button.x() - button_width, this->zoomin_button.y());
 	this->timescale_text_box.position(this->zoomin_button.x() - timescale_text_box_width - 10, this->timescale_text_box.y());
 	this->redraw();
@@ -57,13 +57,6 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->add(this->timescale_text_box);
 	
 	this->color(FL_WHITE);
-	
-	try{
-		this->bar_group.load_tasks();
-	}catch(const std::runtime_error& excp){
-		fl_alert(excp.what());
-		std::terminate();
-	}
 }
 
 //public

@@ -74,7 +74,7 @@ int Bar::calc_bar_width(const std::chrono::days& days_remaining, const std::chro
 }
 
 void Bar::bar_callback(Fl_Widget* const self, void* const data) noexcept{
-	((BarGroup*)(self->parent()))->show_window_for_editing_task((Bar*)(self));
+	((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
 }
 
 bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept{
