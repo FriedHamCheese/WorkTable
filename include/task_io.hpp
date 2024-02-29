@@ -18,7 +18,7 @@ namespace task_io_internal{
 		TaskStr(const std::string& due_date, const std::string& name);
 	};
 
-	std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename);	//std::runtime_error
+	std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename);
 
 	std::vector<std::string> buffer_to_separated_lines(const std::pair<std::unique_ptr<char[]>, int>& buffer);
 	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines);

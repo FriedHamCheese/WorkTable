@@ -17,6 +17,7 @@
 #include <type_traits>
 
 namespace task_io_internal{
+	//can throw std::bad_alloc and std::length_error
 	TaskStr::TaskStr(const std::string& due_date, const std::string& name)
 	:	due_date(due_date), name(name)
 	{
@@ -25,17 +26,29 @@ namespace task_io_internal{
 	std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename){
 		std::ifstream file(filename);
 		
-		if(!file.is_open()) throw std::runtime_error(std::string("task_io.cpp: get_raw_file(): ") + filename +  " cannot be opened.");
-		if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): stream not ready for reading.");
+		if(!file.is_open()) 
+			throw std::runtime_error(std::string("task_io.cpp: get_raw_file(): ") + filename +  " cannot be opened.");
+		if(file.bad()) 
+			throw std::ios_base::failure("task_io.cpp: get_raw_file(): stream not ready for reading.");
+
+		decltype(file.tellg()) filesize = 0;
+		try{
+			file.seekg(0, file.end);
+			filesize = file.tellg();
+			file.seekg(0, file.beg);
+		}catch(const std::ios_base::failure& seekg_tellg_failure) {throw seekg_tellg_failure;}
 		
-		file.seekg(0, file.end);
-		const int filesize = file.tellg();
-		file.seekg(0, file.beg);
+		std::unique_ptr<char[]> buffer;
 		
-		std::unique_ptr<char[]> buffer(new char[filesize]);
-		file.read(buffer.get(), filesize);
+		try{
+			buffer.reset(new char[filesize]);
+			file.read(buffer.get(), filesize);
+		}
+		catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+		catch(const std::ios_base::failure& read_err) {throw read_err;}
 		
-		if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): filestream lost integrity. The buffer should be discarded.");	
+		if(file.bad()) 
+			throw std::ios_base::failure("task_io.cpp: get_raw_file(): filestream lost integrity. The buffer should be discarded.");	
 		
 		return std::make_pair(std::move(buffer), file.gcount());
 	}
