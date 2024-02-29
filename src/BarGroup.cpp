@@ -188,7 +188,7 @@ void BarGroup::add_bar(const Task& task, const int total_items, const int item_i
 		bar = new Bar(BarConstructorArgs(this, task, total_items, item_index));
 		this->bars.emplace_back(bar);		
 	}catch(const std::exception& alloc_err) {
-		throw new std::bad_alloc();
+		throw std::bad_alloc();
 	}
 	
 	this->add(bar);

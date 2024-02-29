@@ -44,7 +44,6 @@ namespace task_io_internal{
 			buffer.reset(new char[filesize]);
 			file.read(buffer.get(), filesize);
 		}
-		catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
 		catch(const std::ios_base::failure& read_err) {throw read_err;}
 		
 		if(file.bad()) 
@@ -57,9 +56,10 @@ namespace task_io_internal{
 		const char* const data = buffer.first.get();
 		const int character_count = buffer.second;
 		
-		std::vector<std::string> lines; lines.reserve(20);
+		std::vector<std::string> lines; 
+		lines.reserve(20);
 		std::string fetch_line;
-		
+
 		for(auto i = 0; i < character_count; ++i){
 			const char c = data[i];
 			
@@ -72,6 +72,7 @@ namespace task_io_internal{
 				fetch_line.clear();
 			}
 		}
+		
 		lines.shrink_to_fit();
 		return lines;
 	}
@@ -130,13 +131,10 @@ namespace task_io_internal{
 }
 
 std::vector<Task> get_tasks(){
-	try{
-		const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(task_io_internal::get_raw_file("tasks.txt"));
-		const std::vector<task_io_internal::TaskStr> taskstrs = task_io_internal::lines_to_taskstrs(lines);
-	
-		return task_io_internal::taskstrs_to_tasks(taskstrs);
-	}
-	catch(std::exception& excp){throw excp;}
+	const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(task_io_internal::get_raw_file("tasks.txt"));
+	const std::vector<task_io_internal::TaskStr> taskstrs = task_io_internal::lines_to_taskstrs(lines);
+
+	return task_io_internal::taskstrs_to_tasks(taskstrs);
 }
 
 //returns string version of number with always 2 digits.
