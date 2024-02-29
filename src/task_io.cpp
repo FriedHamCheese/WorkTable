@@ -16,110 +16,112 @@
 #include <stdexcept>
 #include <type_traits>
 
-TaskStr::TaskStr(const std::string& due_date, const std::string& name)
-:	due_date(due_date), name(name)
-{
-}
-
-std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename){
-	std::ifstream file(filename);
-	
-	if(!file.is_open()) throw std::runtime_error(std::string("task_io.cpp: get_raw_file(): ") + filename +  " cannot be opened.");
-	if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): stream not ready for reading.");
-	
-	file.seekg(0, file.end);
-	const int filesize = file.tellg();
-	file.seekg(0, file.beg);
-	
-	std::unique_ptr<char[]> buffer(new char[filesize]);
-	file.read(buffer.get(), filesize);
-	
-	if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): filestream lost integrity. The buffer should be discarded.");	
-	
-	return std::make_pair(std::move(buffer), file.gcount());
-}
-
-std::vector<std::string> buffer_to_separated_lines(const std::pair<std::unique_ptr<char[]>, int>& buffer){
-	const char* const data = buffer.first.get();
-	const int character_count = buffer.second;
-	
-	std::vector<std::string> lines; lines.reserve(20);
-	std::string fetch_line;
-	
-	for(auto i = 0; i < character_count; ++i){
-		const char c = data[i];
-		
-		if(c != '\n') fetch_line += c;
-		
-		const bool end_of_file = ((i+1) == character_count);
-		
-		if((c == '\n' || end_of_file) && !fetch_line.empty()){
-			lines.emplace_back(fetch_line);
-			fetch_line.clear();
-		}
+namespace task_io_internal{
+	TaskStr::TaskStr(const std::string& due_date, const std::string& name)
+	:	due_date(due_date), name(name)
+	{
 	}
-	lines.shrink_to_fit();
-	return lines;
-}
 
-std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines){
-	//from line to TaskStr
-	std::vector<TaskStr> tasks_str; tasks_str.reserve(20);
-	
-	for(const std::string& line : lines){
-		std::string date_str; date_str.reserve(10);
-		std::string name_str; name_str.reserve(20);
+	std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename){
+		std::ifstream file(filename);
 		
-		const auto line_length = line.size();
-		auto date_str_end_index = line_length; //default
+		if(!file.is_open()) throw std::runtime_error(std::string("task_io.cpp: get_raw_file(): ") + filename +  " cannot be opened.");
+		if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): stream not ready for reading.");
 		
-		for(decltype(line.size()) i = 0; i < line_length; ++i){
-			if(line[i] == ','){
-				date_str_end_index = i;
-				break;
+		file.seekg(0, file.end);
+		const int filesize = file.tellg();
+		file.seekg(0, file.beg);
+		
+		std::unique_ptr<char[]> buffer(new char[filesize]);
+		file.read(buffer.get(), filesize);
+		
+		if(file.bad()) throw std::runtime_error("task_io.cpp: get_raw_file(): filestream lost integrity. The buffer should be discarded.");	
+		
+		return std::make_pair(std::move(buffer), file.gcount());
+	}
+
+	std::vector<std::string> buffer_to_separated_lines(const std::pair<std::unique_ptr<char[]>, int>& buffer){
+		const char* const data = buffer.first.get();
+		const int character_count = buffer.second;
+		
+		std::vector<std::string> lines; lines.reserve(20);
+		std::string fetch_line;
+		
+		for(auto i = 0; i < character_count; ++i){
+			const char c = data[i];
+			
+			if(c != '\n') fetch_line += c;
+			
+			const bool end_of_file = ((i+1) == character_count);
+			
+			if((c == '\n' || end_of_file) && !fetch_line.empty()){
+				lines.emplace_back(fetch_line);
+				fetch_line.clear();
 			}
-			else date_str += line[i];
 		}
-				
-		//+2 for skipping comma and space
-		for(auto i = date_str_end_index+2; i < line_length; ++i){
-			name_str += line[i];
-		}
-		
-		tasks_str.emplace_back(date_str, name_str);
+		lines.shrink_to_fit();
+		return lines;
 	}
-	tasks_str.shrink_to_fit();
-	return tasks_str;
-}
 
-std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs){
-	std::vector<Task> tasks; tasks.reserve(taskstrs.size());
-	
-	const std::chrono::year_month_day current_ymd = get_current_ymd();
-	
-	for(const TaskStr& task_str : taskstrs){
-		const std::optional<std::chrono::year_month_day> task_ymd = str_to_ymd(task_str.due_date);
+	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines){
+		//from line to TaskStr
+		std::vector<TaskStr> tasks_str; tasks_str.reserve(20);
 		
-		const bool valid_due_date = task_ymd.has_value();
-		if(valid_due_date){
-			tasks.emplace_back(task_ymd.value(), task_str.name, current_ymd);
-		}else{
-			//[name] ... (date).
-			//...
-			const std::string msg = task_str.name + " not loaded due to invalid due date" + " (" + task_str.due_date + ")."
-									+ "\n(task_io.cpp: taskstrs_to_tasks())";
-			fl_alert(msg.c_str());
+		for(const std::string& line : lines){
+			std::string date_str; date_str.reserve(10);
+			std::string name_str; name_str.reserve(20);
+			
+			const auto line_length = line.size();
+			auto date_str_end_index = line_length; //default
+			
+			for(decltype(line.size()) i = 0; i < line_length; ++i){
+				if(line[i] == ','){
+					date_str_end_index = i;
+					break;
+				}
+				else date_str += line[i];
+			}
+					
+			//+2 for skipping comma and space
+			for(auto i = date_str_end_index+2; i < line_length; ++i){
+				name_str += line[i];
+			}
+			
+			tasks_str.emplace_back(date_str, name_str);
 		}
+		tasks_str.shrink_to_fit();
+		return tasks_str;
 	}
-	return tasks;
+
+	std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs){
+		std::vector<Task> tasks; tasks.reserve(taskstrs.size());
+		
+		const std::chrono::year_month_day current_ymd = get_current_ymd();
+		
+		for(const TaskStr& task_str : taskstrs){
+			const std::optional<std::chrono::year_month_day> task_ymd = str_to_ymd(task_str.due_date);
+			
+			const bool valid_due_date = task_ymd.has_value();
+			if(valid_due_date){
+				tasks.emplace_back(task_ymd.value(), task_str.name, current_ymd);
+			}else{
+				//[name] ... (date).
+				//...
+				const std::string msg = task_str.name + " not loaded due to invalid due date" + " (" + task_str.due_date + ")."
+										+ "\n(task_io.cpp: taskstrs_to_tasks())";
+				fl_alert(msg.c_str());
+			}
+		}
+		return tasks;
+	}
 }
 
 std::vector<Task> get_tasks(){
 	try{
-		const std::vector<std::string> lines = buffer_to_separated_lines(get_raw_file("tasks.txt"));
-		const std::vector<TaskStr> taskstrs = lines_to_taskstrs(lines);
+		const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(task_io_internal::get_raw_file("tasks.txt"));
+		const std::vector<task_io_internal::TaskStr> taskstrs = task_io_internal::lines_to_taskstrs(lines);
 	
-		return taskstrs_to_tasks(taskstrs);
+		return task_io_internal::taskstrs_to_tasks(taskstrs);
 	}
 	catch(std::exception& excp){throw excp;}
 }
@@ -127,7 +129,7 @@ std::vector<Task> get_tasks(){
 //returns string version of number with always 2 digits.
 std::string int_to_2char(const unsigned num){
 	const std::string num_str = std::to_string(num);
-	//because anything less than 10 is written with only 1 number.
+	//anything less than 10 is written with only 1 number, so we put a 0 in the front.
 	if(num < 10) return "0" + num_str;
 	else return num_str;
 }

@@ -10,18 +10,20 @@
 #include <stdexcept>
 #include <optional>
 
-struct TaskStr{
-	std::string due_date;
-	std::string name;
-	
-	TaskStr(const std::string& due_date, const std::string& name);
-};
+namespace task_io_internal{
+	struct TaskStr{
+		std::string due_date;
+		std::string name;
+		
+		TaskStr(const std::string& due_date, const std::string& name);
+	};
 
-std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename);	//std::runtime_error
+	std::pair<std::unique_ptr<char[]>, int> get_raw_file(const std::string& filename);	//std::runtime_error
 
-std::vector<std::string> buffer_to_separated_lines(const std::pair<std::unique_ptr<char[]>, int>& buffer);
-std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines);
-std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs);
+	std::vector<std::string> buffer_to_separated_lines(const std::pair<std::unique_ptr<char[]>, int>& buffer);
+	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines);
+	std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs);
+}
 
 std::vector<Task> get_tasks();	//std::runtime_error
 
