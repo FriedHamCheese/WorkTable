@@ -69,6 +69,8 @@ namespace task_io_internal{
 				}
 			}
 		}
+		catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+		catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 		
 		lines.shrink_to_fit();
 		return lines;
