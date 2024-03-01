@@ -11,6 +11,8 @@
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Window.H>
 
+#include <FL/fl_ask.h>
+
 #include <string>
 #include <stdexcept>
 
@@ -124,23 +126,27 @@ void TaskPropertiesWindow::delete_button_callback(Fl_Widget* const self, void* c
 //private
 void TaskPropertiesWindow::add_task(){
 	this->warning_message.label("");	
-	const std::optional<std::chrono::year_month_day> new_due_date = str_to_ymd(std::string(this->due_date_dialog.value()));
 	
-	const bool valid_due_date = new_due_date.has_value();
-	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-	if(valid_due_date && task_has_name){
-		main_window->add_task(Task(new_due_date.value(), std::string(task_name_dialog.value())));
-		hide();
-		return;
+	try{
+		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+		if(!task_has_name){
+			this->warning_message.label("Please name the task.");
+			return;
+		}
+		
+		const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(this->due_date_dialog.value()));
+	
+		this->main_window->add_task(Task(new_due_date, std::string(task_name_dialog.value())));
+		this->hide();
 	}
-
-	if(!task_has_name){
-		this->warning_message.label("Please name the task.");
-		return;
-	}	
-	if(!valid_due_date){
-		this->warning_message.label("Please enter a valid due date.");
-		return;
+	catch(const std::invalid_argument& invalid_ymd_str){
+		this->warning_message.copy_label(invalid_ymd_str.what());
+	}
+	catch(const std::bad_alloc& alloc_err){
+		fl_alert("Error allocating memory for adding task. (TaskPropertiesWindow::add_task(): std::bad_alloc)");
+	}
+	catch(const std::length_error& exceeded_max_alloc){
+		fl_alert("Not enough memory to add task. (TaskPropertiesWindow::add_task(): std::length_error)");
 	}
 }
 
@@ -150,22 +156,26 @@ void TaskPropertiesWindow::delete_task(){
 
 void TaskPropertiesWindow::modify_task(){
 	this->warning_message.label("");
-	const std::optional<std::chrono::year_month_day> new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
 	
-	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-	const bool valid_due_date = new_due_date.has_value();
-	if(valid_due_date && task_has_name){
-		main_window->modify_task(task_name_dialog.value(), new_due_date.value(), modifying_item_index);
-		hide();
-		return;
+	try{
+		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+		if(!task_has_name){
+			this->warning_message.label("Please name the task.");
+			return;
+		}		
+		
+		const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
+
+		this->main_window->modify_task(task_name_dialog.value(), new_due_date, modifying_item_index);
+		this->hide();
 	}
-	
-	if(!task_has_name){
-		this->warning_message.label("Please name the task.");
-		return;
+	catch(const std::invalid_argument& invalid_ymd_str){
+		this->warning_message.copy_label(invalid_ymd_str.what());
+	}
+	catch(const std::bad_alloc& alloc_err){
+		fl_alert("Error allocating memory for editing task. (TaskPropertiesWindow::modify_task(): std::bad_alloc)");
+	}
+	catch(const std::length_error& exceeded_max_alloc){
+		fl_alert("Not enough memory to edit task. (TaskPropertiesWindow::modify_task(): std::length_error)");
 	}	
-	if(!valid_due_date){
-		this->warning_message.label("Please enter a valid due date in format of yyyy/(m)m/(d)d.");
-		return;
-	}
 }
