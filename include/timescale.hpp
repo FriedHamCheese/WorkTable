@@ -20,12 +20,12 @@ namespace timescale{
 	inline constexpr int smallest_timescale_int = static_cast<int>(smallest_timescale);
 	inline constexpr int widest_timescale_int = static_cast<int>(widest_timescale);
 
-	inline constexpr Timescale zoomin_timescale(const Timescale timescale) noexcept{
+	inline constexpr Timescale zoomin_timescale(const Timescale timescale){
 		const int timescale_int = static_cast<int>(timescale);
 		return static_cast<Timescale>(std::clamp(timescale_int - 1, smallest_timescale_int, widest_timescale_int));
 	}
 
-	inline constexpr Timescale zoomout_timescale(const Timescale timescale) noexcept{
+	inline constexpr Timescale zoomout_timescale(const Timescale timescale){
 		const int timescale_int = static_cast<int>(timescale);
 		return static_cast<Timescale>(std::clamp(timescale_int + 1, smallest_timescale_int, widest_timescale_int));
 	}
