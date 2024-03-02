@@ -16,16 +16,16 @@ Task::Task(const std::chrono::year_month_day& due_date, const std::string& name,
 	//nothing here :D
 }
 
-std::chrono::year_month_day Task::due_date() const noexcept{
+std::chrono::year_month_day Task::due_date() const{
 	return _due_date;
 }
 
-void Task::due_date(const std::chrono::year_month_day& new_due_date) noexcept{
+void Task::due_date(const std::chrono::year_month_day& new_due_date){
 	_due_date = new_due_date;
 	_days_remaining = delta_days(new_due_date, get_current_ymd());
 }	
 
-std::chrono::days Task::days_remaining() const noexcept{
+std::chrono::days Task::days_remaining() const{
 	return _days_remaining;
 }
 
@@ -34,15 +34,14 @@ std::string Task::name() const{
 }
 
 void Task::name(const std::string& new_name){
-	_name = new_name;
+	try{
+		_name = new_name;
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 }
 
 bool Task::due_date_is_earlier(const Task& lhs, const Task& rhs) noexcept{
 	return lhs.due_date() < rhs.due_date();
-}
-
-
-bool task::due_date_is_earlier(const std::chrono::year_month_day& lhs, const std::chrono::year_month_day& rhs) noexcept{
-	return lhs < rhs;
 }
 

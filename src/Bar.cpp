@@ -78,7 +78,7 @@ void Bar::bar_callback(Fl_Widget* const self, void* const data) noexcept{
 }
 
 bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept{
-	return task::due_date_is_earlier(lhs->get_due_date(), rhs->get_due_date());
+	return lhs->get_due_date() < rhs->get_due_date();
 }
 
 
