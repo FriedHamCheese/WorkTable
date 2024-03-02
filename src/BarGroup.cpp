@@ -252,7 +252,7 @@ int BarGroup::current_date_line_xpos() const{
 }
 
 int BarGroup::next_interval_date_line_xpos() const{
-	return this->x() +this->bar_max_width;
+	return this->x() +this->bar_max_width + this->bar_xoffset;
 }
 
 
