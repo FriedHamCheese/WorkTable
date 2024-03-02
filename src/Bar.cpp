@@ -30,7 +30,7 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 }
 
-void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval){
+void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
 	try{
 		this->task_properties.name(task_name);
 		this->task_properties.due_date(due_date);
@@ -39,15 +39,18 @@ void Bar::update_task(const char* const task_name, const std::chrono::year_month
 	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
 	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 	
-	this->update_width(days_from_interval);	
+	this->update_width(days_from_interval, parent_xpos);	
+	this->update_color_from_days_remaining();	
 }
 
-void Bar::update_width(const std::chrono::days& days_from_interval){
-	const bool move_to_overdue_position = this->task_properties.days_remaining().count() < 0;
+void Bar::update_width(const std::chrono::days& days_from_interval, const int parent_xpos){
+	const bool move_to_overdue_position = this->task_properties.days_remaining().count() < 1;
 	
 	if(!move_to_overdue_position){
 		const int bar_width = Bar::calc_bar_width(this->task_properties.days_remaining(), days_from_interval);
-		this->size(bar_width, this->h());
+		this->resize(parent_xpos + BarGroup::bar_xoffset, this->y(), bar_width, this->h());
+	}else{
+		this->resize(parent_xpos, this->y(), BarGroup::bar_xoffset, this->h());
 	}
 }
 

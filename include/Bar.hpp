@@ -17,8 +17,8 @@ class Bar : public Fl_Button{
 	Bar(const BarConstructorArgs& args);
 	Bar(const int xpos, const int ypos, const int width, const int height, const Task& task_properties);
 	
-	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval);
-	void update_width(const std::chrono::days& days_from_interval);
+	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
+	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
 	std::chrono::year_month_day get_due_date() const;
 	Task get_task_properties() const {return this->task_properties;}
 

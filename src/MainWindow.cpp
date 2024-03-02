@@ -9,7 +9,6 @@
 #include<FL/Fl_Box.H>
 #include<FL/Fl_Button.H>
 #include<FL/Fl_Window.H>
-#include<FL/fl_ask.H>
 
 MainWindow::MainWindow(const int xpos, const int ypos, const int width, const int height, const char* window_title)
 :	Fl_Window(xpos, ypos, width, height, window_title),
@@ -20,26 +19,21 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	new_task_button(bar_group.current_date_label_xpos(), ypos_below(bar_group), 
 					MainWindow::button_width, MainWindow::button_height, "@filenew"
 	),
-	zoomin_button(
-		xpos_right_of(bar_group) - MainWindow::button_width, ypos_below(bar_group), 
-		MainWindow::button_width, MainWindow::button_height, "+"
-	),
 	zoomout_button(
-		zoomin_button.x() - button_width, ypos_below(bar_group),
+		bar_group.xpos_right_of_interval_date_label() - MainWindow::button_width, ypos_below(bar_group),
 		MainWindow::button_width, MainWindow::button_height, "-"
 	),
+	zoomin_button(
+		zoomout_button.x() - button_width, ypos_below(bar_group), 
+		MainWindow::button_width, MainWindow::button_height, "+"
+	),	
 	timescale_text_box(
-		zoomout_button.x() - MainWindow::timescale_text_box_width - 10, 
+		zoomin_button.x() - MainWindow::timescale_text_box_width - 10, 
 		ypos_below(bar_group),
 		MainWindow::timescale_text_box_width, 
 		MainWindow::timescale_text_box_height
 	)
-{
-	this->zoomout_button.position(bar_group.xpos_right_of_interval_date_label() - MainWindow::button_width, this->zoomout_button.y());
-	this->zoomin_button.position(this->zoomout_button.x() - button_width, this->zoomin_button.y());
-	this->timescale_text_box.position(this->zoomin_button.x() - timescale_text_box_width - 10, this->timescale_text_box.y());
-	this->redraw();
-	
+{	
 	this->new_task_button.labelcolor(FL_GRAY);	
 	
 	this->timescale_text_box.align(FL_ALIGN_INSIDE | FL_ALIGN_RIGHT);
@@ -61,15 +55,23 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 
 //public
 void MainWindow::add_task(const Task& task){
-	this->bar_group.add_task(task);
+	try{
+		this->bar_group.add_task(task);
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 }
 
-void MainWindow::delete_task(const int item_index){
-	this->bar_group.delete_task(item_index);
+bool MainWindow::delete_task(const int item_index){
+	return this->bar_group.delete_task(item_index);
 }
 
 void MainWindow::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
-	this->bar_group.modify_task(task_name, due_date, item_index);
+	try{
+		this->bar_group.modify_task(task_name, due_date, item_index);
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 }
 
 

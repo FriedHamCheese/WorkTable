@@ -51,7 +51,6 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 		
 	try{this->load_tasks_to_bars();}
 	catch(const std::bad_alloc& not_enough_temp_memory){throw not_enough_temp_memory;}
-	catch(const std::exception& implementation_defined_excp){throw implementation_defined_excp;}
 }
 
 BarGroup::~BarGroup() noexcept{
@@ -80,28 +79,27 @@ BarGroup::~BarGroup() noexcept{
 
 void BarGroup::load_tasks_to_bars(){
 	std::vector<Task> tasks;
-	
-	try{
-		tasks = get_tasks();
-		//yep, it's "implementation defined exception" on cppreference and allocator_traits::construct on cplusplus.
-		//no certainty, so base exception is used here
-	}catch(const std::exception& implementation_defined_excp) {throw implementation_defined_excp;}
+	tasks = get_tasks();
 
 	const auto task_count = tasks.size();
 	
 	try{
 		std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
-	}catch(const std::bad_alloc& not_enough_temp_memory) {throw not_enough_temp_memory;}
-	
-	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
-		this->add_bar(tasks[i], task_count, i);
+		
+		for(decltype(tasks.size()) i = 0; i < task_count; ++i)
+			this->add_bar(tasks[i], task_count, i);
+	}
+	catch(const std::bad_alloc& not_enough_temp_memory) {throw not_enough_temp_memory;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 }
 
 
 void BarGroup::add_task(const Task& task){
 	try{
 		this->add_bar(task);
-	}catch(const std::bad_alloc& alloc_err){throw alloc_err;}
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 
 	this->redraw();
 }
@@ -114,60 +112,63 @@ bool BarGroup::delete_task(const int item_index){
 	this->bars.erase(this->bars.begin() + item_index);
 	this->adjust_vertical_layout();
 	this->redraw();
-	
 	return true;
 }
 
-bool BarGroup::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
-	if(std::abs(item_index) >= bars.size()) return false;
+void BarGroup::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
+	if(std::abs(item_index) >= bars.size()) 
+		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
 	
-	//can write a try-catch for update task
-	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval());
-	bars[item_index]->redraw();
-	return true;
-}
-
-
-bool BarGroup::request_window_for_editing_task(const Bar* const bar) const noexcept{
 	try{
-		const int item_index = this->get_item_index(bar);
-		((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
-		return true;
+		bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());
 	}
-	catch(const std::invalid_argument& item_index_not_found){return false;}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
+
+	this->redraw();
 }
 
 
-std::chrono::days BarGroup::get_days_from_interval() const noexcept{
+bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
+	const int_least64_t item_index = this->get_item_index(bar);
+	const bool invalid_item = item_index < 0;
+	if(invalid_item) return false;
+	
+	((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
+	return true;
+}
+
+
+std::chrono::days BarGroup::get_days_from_interval() const{
 	return delta_days(next_interval, current_ymd);
 }
 
 
 //layout related code
-int BarGroup::current_date_label_xpos() const noexcept{
+int BarGroup::current_date_label_xpos() const{
 	return current_date_label.x();
 }
-int BarGroup::xpos_right_of_interval_date_label() const noexcept{
+int BarGroup::xpos_right_of_interval_date_label() const{
 	return xpos_right_of(interval_date_label);
 }
 
 
-Timescale BarGroup::zoomin_timescale() noexcept{
+Timescale BarGroup::zoomin_timescale(){
 	const Timescale new_timescale = timescale::zoomin_timescale(this->current_timescale);	
-	return change_timescale(new_timescale);
+	return this->change_timescale(new_timescale);
 }
 
-Timescale BarGroup::zoomout_timescale() noexcept{
+Timescale BarGroup::zoomout_timescale(){
 	const Timescale new_timescale = timescale::zoomout_timescale(this->current_timescale);	
-	return change_timescale(new_timescale);
+	return this->change_timescale(new_timescale);
 }
 
 
 
 //protected:
-void BarGroup::draw() noexcept{
+void BarGroup::draw(){	
 	Fl_Group::draw();
-	
+
 	const int left_line_xpos = this->current_date_line_xpos();
 	const int right_line_xpos = this->next_interval_date_line_xpos();
 	
@@ -187,9 +188,9 @@ void BarGroup::add_bar(const Task& task, const int total_items, const int item_i
 	try{
 		bar = new Bar(BarConstructorArgs(this, task, total_items, item_index));
 		this->bars.emplace_back(bar);		
-	}catch(const std::exception& alloc_err) {
-		throw std::bad_alloc();
 	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 	
 	this->add(bar);
 }
@@ -201,13 +202,15 @@ void BarGroup::add_bar(const Task& task){
 	
 	try{
 		this->add_bar(task, incremented_bar_count, incremented_item_index);
-	}catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 
 	this->adjust_vertical_layout();
 }
 
 
-int_least64_t BarGroup::get_item_index(const Bar* const bar) const noexcept{
+int_least64_t BarGroup::get_item_index(const Bar* const bar) const{
 	const auto bar_count = this->bars.size();
 	
 	for(decltype(this->bars.size()) i = 0; i < bar_count; ++i){
@@ -217,7 +220,7 @@ int_least64_t BarGroup::get_item_index(const Bar* const bar) const noexcept{
 }
 
 
-void BarGroup::adjust_vertical_layout() noexcept{
+void BarGroup::adjust_vertical_layout(){
 	const auto bar_count = this->bars.size();
 	
 	const int bar_height = Bar::calc_height(this->h(), bar_count);
@@ -231,28 +234,28 @@ void BarGroup::adjust_vertical_layout() noexcept{
 	}
 }
 
-Timescale BarGroup::change_timescale(const Timescale timescale) noexcept{
+Timescale BarGroup::change_timescale(const Timescale timescale){
 	if(timescale == current_timescale) return current_timescale;
 	
 	this->current_timescale = timescale;
 	this->next_interval = get_next_interval(this->current_ymd, timescale);
 	
 	for(std::unique_ptr<Bar>& bar : bars)
-		bar->update_width(get_days_from_interval());
+		bar->update_width(get_days_from_interval(), this->x());
 	
 	return timescale;
 }
 
 
-int BarGroup::current_date_line_xpos() const noexcept{
+int BarGroup::current_date_line_xpos() const{
 	return this->x() + this->bar_xoffset;
 }
 
-int BarGroup::next_interval_date_line_xpos() const noexcept{
+int BarGroup::next_interval_date_line_xpos() const{
 	return this->x() +this->bar_max_width;
 }
 
 
-bool BarGroup::bar_due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs) noexcept{
+bool BarGroup::bar_due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs){
 	return Bar::due_date_is_earlier(lhs.get(), rhs.get());
 }

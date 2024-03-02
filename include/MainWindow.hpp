@@ -10,14 +10,12 @@
 #include<FL/Fl_Button.H>
 #include<FL/Fl_Window.H>
 
-#include <chrono>
-
 class MainWindow : public Fl_Window{
 	public:
 	MainWindow(const int xpos, const int ypos, const int width, const int height, const char* window_title = 0);
 	
 	void add_task(const Task& task);
-	void delete_task(const int item_index);
+	bool delete_task(const int item_index);
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 
 	void show_window_for_creating_new_task();
@@ -38,8 +36,8 @@ class MainWindow : public Fl_Window{
 	
 	BarGroup bar_group;
 	Fl_Button new_task_button;
-	Fl_Button zoomin_button;
 	Fl_Button zoomout_button;
+	Fl_Button zoomin_button;	
 	Fl_Box timescale_text_box;
 	
 	static constexpr int button_width = 25;
