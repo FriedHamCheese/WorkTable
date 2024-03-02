@@ -121,12 +121,11 @@ namespace task_io_internal{
 			const std::chrono::year_month_day current_ymd = get_current_ymd();
 			
 			for(const TaskStr& task_str : taskstrs){
-				const std::optional<std::chrono::year_month_day> task_ymd = str_to_ymd(task_str.due_date);
-				
-				const bool valid_due_date = task_ymd.has_value();
-				if(valid_due_date){
-					tasks.emplace_back(task_ymd.value(), task_str.name, current_ymd);
-				}else{
+				try{
+					const std::chrono::year_month_day task_ymd = str_to_ymd(task_str.due_date);		
+					tasks.emplace_back(task_ymd, task_str.name, current_ymd);
+				}
+				catch(const std::invalid_argument& invalid_ymd){
 					//[name] ... (date).
 					//...
 					const std::string msg = task_str.name + " not loaded due to invalid due date" + " (" + task_str.due_date + ")."
@@ -189,9 +188,11 @@ void overwrite_taskfile(const std::vector<Task>& tasks){
 	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 	
 	//remove last trailing \n
-	buffer.erase(buffer.end() - 1);
+	if(buffer.size() != 0){
+		buffer.erase(buffer.end() - 1);
+	}
 	buffer.shrink_to_fit();
-	
+		
 	const int resave_requested = 0;
 	int user_decision = resave_requested;
 	do{

@@ -50,7 +50,18 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 	this->current_date_label.align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
 		
 	try{this->load_tasks_to_bars();}
-	catch(const std::bad_alloc& not_enough_temp_memory){throw not_enough_temp_memory;}
+	catch(const std::bad_alloc& alloc_err) {
+		fl_alert("Not enough memory to load tasks. (BarGroup::BarGroup(): alloc_err)");
+	}
+	catch(const std::length_error& exceeded_max_alloc) {
+		fl_alert("Not enough memory to load tasks. (BarGroup::BarGroup(): exceeded_max_alloc)");
+	}	
+	catch(const std::ios_base::failure& file_io_error) {
+		fl_alert("File IO error while loading tasks. (BarGroup::BarGroup())");
+	}
+	catch(const std::runtime_error& file_not_opened) {
+		fl_alert("Couldn't open ./tasks.txt. (BarGroup::BarGroup())");
+	}
 }
 
 BarGroup::~BarGroup() noexcept{
@@ -79,7 +90,14 @@ BarGroup::~BarGroup() noexcept{
 
 void BarGroup::load_tasks_to_bars(){
 	std::vector<Task> tasks;
-	tasks = get_tasks();
+	
+	try{
+		tasks = get_tasks();
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}	
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
+	catch(const std::ios_base::failure& file_io_error) {throw file_io_error;}
+	catch(const std::runtime_error& file_not_opened) {throw file_not_opened;}	
 
 	const auto task_count = tasks.size();
 	
