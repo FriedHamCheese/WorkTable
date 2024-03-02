@@ -20,7 +20,7 @@ class Bar : public Fl_Button{
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval);
 	void update_width(const std::chrono::days& days_from_interval);
 	std::chrono::year_month_day get_due_date() const;
-	Task get_task_properties() const noexcept {return this->task_properties;}
+	Task get_task_properties() const {return this->task_properties;}
 
 	static int calc_height(const int height_with_yspacing) noexcept;
 	static int calc_height(const int timeline_height, const int task_count) noexcept;

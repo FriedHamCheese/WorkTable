@@ -6,12 +6,14 @@
 
 #include <string>
 
+//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 Bar::Bar(const BarConstructorArgs& args)
 :	Bar(args.xpos, args.ypos, args.width, args.height, args.task_properties)
 {
 	
 }
 
+//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 Bar::Bar(const int xpos, const int ypos, const int width, const int height, const Task& task_properties)
 :	Fl_Button(xpos, ypos, width, height),
 	task_properties(task_properties)
@@ -21,13 +23,21 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 	this->box(FL_FLAT_BOX);
 	this->callback(Bar::bar_callback);
 	
-	this->update_label();
+	try{
+		this->update_label();
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 }
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval){
-	this->task_properties.name(task_name);
-	this->task_properties.due_date(due_date);
-	this->update_label();
+	try{
+		this->task_properties.name(task_name);
+		this->task_properties.due_date(due_date);
+		this->update_label();
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 	
 	this->update_width(days_from_interval);	
 }
@@ -85,8 +95,12 @@ bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexce
 //private
 void Bar::update_label(){
 	//[task name] ([days_remaining] days)
-	const std::string bar_string = task_properties.name() + " (" + std::to_string(task_properties.days_remaining().count()) + " days)";
-	copy_label(bar_string.c_str());
+	try{
+		const std::string bar_string = task_properties.name() + " (" + std::to_string(task_properties.days_remaining().count()) + " days)";
+		this->copy_label(bar_string.c_str());
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 }
 
 void Bar::update_color_from_days_remaining() noexcept{
@@ -94,6 +108,7 @@ void Bar::update_color_from_days_remaining() noexcept{
 }
 
 
+//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const Task& task_properties, 
 										const int task_count, const int item_index)
 :	task_properties(task_properties)
