@@ -65,27 +65,7 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 }
 
 BarGroup::~BarGroup() noexcept{
-	try{
-		std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
-	}catch(const std::bad_alloc& not_enough_temp_memory){
-		fl_alert("Not enough memory to save task. (BarGroup::~BarGroup(): not_enough_temp_memory)");
-	}
-	
-	try{
-		std::vector<Task> tasks;
-		tasks.reserve(this->bars.size());
-		
-		for(const std::unique_ptr<Bar>& bar : this->bars)
-			tasks.emplace_back(bar->get_task_properties());	
-		
-		overwrite_taskfile(tasks);
-	}
-	catch(const std::length_error& exceeded_max_alloc) {	
-		fl_alert("Not enough memory to save task. (BarGroup::~BarGroup(): exceeded_max_alloc)");
-	}
-	catch(const std::exception& allocator_excp) {
-		fl_alert("Not enough memory to save task. (BarGroup::~BarGroup(): allocator_excp)");
-	}
+	//this should check and notify unsaved changes to task list.
 }
 
 void BarGroup::load_tasks_to_bars(){
@@ -154,6 +134,27 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	
 	((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
 	return true;
+}
+
+//maybe sort only the tasks but not the bars?
+void BarGroup::save_tasks_to_file(){
+	try{
+		std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
+	
+		std::vector<Task> tasks;
+		tasks.reserve(this->bars.size());
+		
+		for(const std::unique_ptr<Bar>& bar : this->bars)
+			tasks.emplace_back(bar->get_task_properties());	
+		
+		overwrite_taskfile(tasks);
+	}
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
+	catch(const std::bad_alloc& not_enough_temp_memory){throw not_enough_temp_memory;}
+}
+
+void BarGroup::revert_to_tasks_from_file(){
+	
 }
 
 

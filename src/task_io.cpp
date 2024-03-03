@@ -201,7 +201,7 @@ void overwrite_taskfile(const std::vector<Task>& tasks){
 		
 		//file.bad() trips when writing an empty file, so a buffer size check is added.
 		if(file.bad() && buffer.size() != 0){
-			user_decision = fl_choice("Anomaly detected while saving task. Try resaving?", "Yes", "Keep anomaly", 0);
+			user_decision = fl_choice("Anomaly detected while saving task. Try resaving?", "Resave", "Keep anomaly", 0);
 		}else break;
 		
 	}while(user_decision == resave_requested);

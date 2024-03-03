@@ -10,6 +10,8 @@
 #include<FL/Fl_Button.H>
 #include<FL/Fl_Window.H>
 
+#include <FL/fl_ask.h>
+
 MainWindow::MainWindow(const int xpos, const int ypos, const int width, const int height, const char* window_title)
 :	Fl_Window(xpos, ypos, width, height, window_title),
 	task_properties_window(TaskPropertiesWindow::width, TaskPropertiesWindow::height, this
@@ -18,6 +20,12 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	),
 	new_task_button(bar_group.current_date_label_xpos(), ypos_below(bar_group), 
 					MainWindow::button_width, MainWindow::button_height, "@filenew"
+	),
+	save_button(xpos_right_of(new_task_button) + 10, ypos_below(bar_group), 
+				MainWindow::button_width, MainWindow::button_height, "@filesave"
+	),	
+	discard_button(xpos_right_of(save_button), ypos_below(bar_group), 
+					MainWindow::button_width, MainWindow::button_height, "X"
 	),
 	zoomout_button(
 		bar_group.xpos_right_of_interval_date_label() - MainWindow::button_width, ypos_below(bar_group),
@@ -35,17 +43,25 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	)
 {	
 	this->new_task_button.labelcolor(FL_GRAY);	
+	this->discard_button.labelfont(FL_HELVETICA_BOLD);
 	
 	this->timescale_text_box.align(FL_ALIGN_INSIDE | FL_ALIGN_RIGHT);
 	this->timescale_text_box.label(timescale::get_timescale_str(timescale::default_timescale));
 
 	this->new_task_button.callback(MainWindow::new_task_button_callback);	
+	
+	this->save_button.callback(MainWindow::save_button_callback);	
+	this->discard_button.callback(MainWindow::discard_button_callback);	
+	
 	this->zoomin_button.callback(MainWindow::zoomin_button_callback);
 	this->zoomout_button.callback(MainWindow::zoomout_button_callback);
 	
+	//this need some investigation why this requires manual end() and adds()
 	this->end();
 	this->add(this->bar_group);
 	this->add(this->new_task_button);
+	this->add(this->save_button);
+	this->add(this->discard_button);	
 	this->add(this->zoomin_button);
 	this->add(this->zoomout_button);
 	this->add(this->timescale_text_box);
@@ -86,6 +102,28 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 }
 
 
+void MainWindow::save_tasks_to_file() noexcept{
+	try{
+		this->bar_group.save_tasks_to_file();
+	}
+	catch(const std::length_error& exceeded_max_alloc){
+		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::length_error)");
+	}
+	catch(const std::bad_alloc& alloc_err){
+		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::bad_alloc)");	
+	}	
+	catch(const std::exception& unspecified_excp){
+		const std::string msg = std::string("Unspecified exception caught while saving tasks to file. (MainWindow::save_tasks_to_file() ") 
+								+ std::string(unspecified_excp.what()); 
+		fl_alert(msg.c_str());
+	}
+}
+
+void MainWindow::revert_to_tasks_from_file(){
+	this->bar_group.revert_to_tasks_from_file();
+}
+
+
 void MainWindow::zoomin_timescale(){
 	const Timescale new_timescale = this->bar_group.zoomin_timescale();	
 	
@@ -104,6 +142,14 @@ void MainWindow::zoomout_timescale(){
 //static public
 void MainWindow::new_task_button_callback(Fl_Widget* const self_ptr, void* const data){
 	((MainWindow*)(self_ptr->parent()))->show_window_for_creating_new_task();
+}
+
+void MainWindow::save_button_callback(Fl_Widget* const self_ptr, void* const data){
+	((MainWindow*)(self_ptr->parent()))->save_tasks_to_file();
+}
+
+void MainWindow::discard_button_callback(Fl_Widget* const self_ptr, void* const data){
+	((MainWindow*)(self_ptr->parent()))->revert_to_tasks_from_file();
 }
 
 void MainWindow::zoomin_button_callback(Fl_Widget* const self_ptr, void* const data){

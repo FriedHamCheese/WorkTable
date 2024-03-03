@@ -26,6 +26,9 @@ class BarGroup : public Fl_Group{
 
 	bool request_window_for_editing_task(const Bar* const bar) const;
 	
+	void save_tasks_to_file();
+	void revert_to_tasks_from_file();
+	
 	std::chrono::days get_days_from_interval() const;
 	
 	//layout specific code
