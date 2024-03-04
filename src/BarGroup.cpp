@@ -51,16 +51,20 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 		
 	try{this->load_tasks_to_bars();}
 	catch(const std::bad_alloc& alloc_err) {
-		fl_alert("Not enough memory to load tasks. (BarGroup::BarGroup(): alloc_err)");
+		fl_alert("Memory allocation error while loading tasks. (BarGroup::BarGroup(): std::bad_alloc)"
+				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
 	}
 	catch(const std::length_error& exceeded_max_alloc) {
-		fl_alert("Not enough memory to load tasks. (BarGroup::BarGroup(): exceeded_max_alloc)");
+		fl_alert("Memory allocation error while loading tasks. (BarGroup::BarGroup(): std::length_error)"
+				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
 	}	
 	catch(const std::ios_base::failure& file_io_error) {
-		fl_alert("File IO error while loading tasks. (BarGroup::BarGroup())");
+		fl_alert("I/O error while loading tasks from tasks.txt. (BarGroup::BarGroup())"
+				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
 	}
 	catch(const std::runtime_error& file_not_opened) {
-		fl_alert("Couldn't open ./tasks.txt. (BarGroup::BarGroup())");
+		fl_alert("Task list file unable to be opened. (BarGroup::BarGroup())"
+				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
 	}
 }
 
@@ -154,7 +158,21 @@ void BarGroup::save_tasks_to_file(){
 }
 
 void BarGroup::revert_to_tasks_from_file(){
+	for(std::unique_ptr<Bar>& bar_uniptr : this->bars){
+		this->remove(bar_uniptr.get());
+		bar_uniptr.release();
+	}
+	this->bars.clear();
 	
+	try{
+		this->load_tasks_to_bars();
+	}
+	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}	
+	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
+	catch(const std::ios_base::failure& file_io_error) {throw file_io_error;}
+	catch(const std::runtime_error& file_not_opened) {throw file_not_opened;}
+	
+	this->redraw();
 }
 
 

@@ -22,7 +22,7 @@ class MainWindow : public Fl_Window{
 	void show_window_for_editing_task(const Task& task_properties, const int item_index);
 	
 	void save_tasks_to_file() noexcept;
-	void revert_to_tasks_from_file();
+	void revert_to_tasks_from_file() noexcept;
 
 	void zoomin_timescale();
 	void zoomout_timescale();	
