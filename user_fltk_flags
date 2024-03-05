@@ -1,2 +1,0 @@
-FLTK_CXXFLAGS := -I/mingw64/include -march=nocona -msahf -mtune=generic -O2 -pipe -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-strong -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
-FLTK_LDFLAGS := -L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lole32 -lcomctl32 -lws2_32
