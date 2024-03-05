@@ -103,7 +103,7 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 }
 
 
-void MainWindow::save_tasks_to_file() noexcept{
+void MainWindow::save_tasks_to_file(){
 	try{
 		this->bar_group.save_tasks_to_file();
 	}
@@ -123,7 +123,12 @@ void MainWindow::save_tasks_to_file() noexcept{
 	}
 }
 
-void MainWindow::revert_to_tasks_from_file() noexcept{
+void MainWindow::revert_to_tasks_from_file(){
+	if(!this->bar_group.has_unsaved_changes_to_tasks()){
+		fl_alert("No changes were made to task list. No need to revert the changes.");
+		return;
+	}
+	
 	const int user_decision_revert = 1;
 	const int user_decision = fl_choice("Revert tasks back to task list in file?", "Cancel", "Revert", 0);
 	if (user_decision != user_decision_revert) return;

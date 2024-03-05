@@ -34,6 +34,8 @@ class BarGroup : public Fl_Group{
 	//layout specific code
 	int current_date_label_xpos() const;
 	int xpos_right_of_interval_date_label() const;
+	
+	bool has_unsaved_changes_to_tasks() const;
 
 	Timescale zoomin_timescale();
 	Timescale zoomout_timescale();
@@ -65,7 +67,9 @@ class BarGroup : public Fl_Group{
 	const std::chrono::year_month_day current_ymd;
 	
 	Timescale current_timescale;
-	std::chrono::year_month_day next_interval;	
+	std::chrono::year_month_day next_interval;
+
+	bool unsaved_changes_made_to_tasks;
 	
 	static bool bar_due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs);
 	

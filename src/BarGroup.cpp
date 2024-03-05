@@ -36,7 +36,8 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 	),
 	current_ymd(get_current_ymd()),
 	current_timescale(timescale::default_timescale),
-	next_interval(get_next_interval(this->current_ymd, this->current_timescale))
+	next_interval(get_next_interval(this->current_ymd, this->current_timescale)),
+	unsaved_changes_made_to_tasks(false)
 {
 	this->end();
 	
@@ -69,7 +70,31 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 }
 
 BarGroup::~BarGroup() noexcept{
-	//this should check and notify unsaved changes to task list.
+	if(this->unsaved_changes_made_to_tasks){
+		const int save_unsaved_changes = 1;
+		const int user_option = fl_choice("There were unsaved changes made to task list. Would you like to save the changes?", "No", "Yes", 0);
+		
+		try{
+			if(user_option == save_unsaved_changes){
+				save_tasks_to_file();
+				fl_alert("Tasks saved successfully.");
+			}
+		}
+		catch(const std::bad_alloc& alloc_err){
+			fl_alert("Not enough memory to save tasks to file. (BarGroup::~BarGroup(): std::bad_alloc)");
+		}
+		catch(const std::length_error& length_error){
+			fl_alert("Not enough memory to save tasks to file. (BarGroup::~BarGroup(): std::length_error)");			
+		}
+		catch(const std::exception& unspecified_excp){
+			const std::string msg = std::string("Caught an unspecified exception while saving tasks to file.")
+									+ " (BarGroup::~BarGroup(): " + std::string(unspecified_excp.what()) + ")";
+			fl_alert(msg.c_str());
+		}
+		catch(...){
+			fl_alert("Caught an unspecified throw while saving tasks to file. (BarGroup::~BarGroup())");			
+		}
+	}
 }
 
 void BarGroup::load_tasks_to_bars(){
@@ -97,12 +122,8 @@ void BarGroup::load_tasks_to_bars(){
 
 
 void BarGroup::add_task(const Task& task){
-	try{
-		this->add_bar(task);
-	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
-
+	this->add_bar(task);
+	this->unsaved_changes_made_to_tasks = true;
 	this->redraw();
 }
 
@@ -112,6 +133,8 @@ bool BarGroup::delete_task(const int item_index){
 	}catch(const std::out_of_range& invalid_item_index) {return false;}
 	
 	this->bars.erase(this->bars.begin() + item_index);
+	this->unsaved_changes_made_to_tasks = true;
+	
 	this->adjust_vertical_layout();
 	this->redraw();
 	return true;
@@ -120,13 +143,9 @@ bool BarGroup::delete_task(const int item_index){
 void BarGroup::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
 	if(std::abs(item_index) >= bars.size()) 
 		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
-	
-	try{
-		bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());
-	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
 
+	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());
+	this->unsaved_changes_made_to_tasks = true;
 	this->redraw();
 }
 
@@ -142,19 +161,16 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 
 //maybe sort only the tasks but not the bars?
 void BarGroup::save_tasks_to_file(){
-	try{
-		std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
+	std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
+
+	std::vector<Task> tasks;
+	tasks.reserve(this->bars.size());
 	
-		std::vector<Task> tasks;
-		tasks.reserve(this->bars.size());
-		
-		for(const std::unique_ptr<Bar>& bar : this->bars)
-			tasks.emplace_back(bar->get_task_properties());	
-		
-		overwrite_taskfile(tasks);
-	}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
-	catch(const std::bad_alloc& not_enough_temp_memory){throw not_enough_temp_memory;}
+	for(const std::unique_ptr<Bar>& bar : this->bars)
+		tasks.emplace_back(bar->get_task_properties());	
+	
+	overwrite_taskfile(tasks);
+	this->unsaved_changes_made_to_tasks = false;
 }
 
 void BarGroup::revert_to_tasks_from_file(){
@@ -167,11 +183,10 @@ void BarGroup::revert_to_tasks_from_file(){
 	try{
 		this->load_tasks_to_bars();
 	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}	
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
 	catch(const std::ios_base::failure& file_io_error) {throw file_io_error;}
 	catch(const std::runtime_error& file_not_opened) {throw file_not_opened;}
-	
+
+	this->unsaved_changes_made_to_tasks = false;	
 	this->redraw();
 }
 
@@ -187,6 +202,11 @@ int BarGroup::current_date_label_xpos() const{
 }
 int BarGroup::xpos_right_of_interval_date_label() const{
 	return xpos_right_of(interval_date_label);
+}
+
+
+bool BarGroup::has_unsaved_changes_to_tasks() const{
+	return this->unsaved_changes_made_to_tasks;
 }
 
 
