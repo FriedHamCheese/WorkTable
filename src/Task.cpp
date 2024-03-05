@@ -34,11 +34,7 @@ std::string Task::name() const{
 }
 
 void Task::name(const std::string& new_name){
-	try{
-		_name = new_name;
-	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
+	_name = new_name;
 }
 
 bool Task::due_date_is_earlier(const Task& lhs, const Task& rhs) noexcept{

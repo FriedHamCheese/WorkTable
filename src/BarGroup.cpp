@@ -295,7 +295,15 @@ Timescale BarGroup::change_timescale(const Timescale timescale){
 	if(timescale == current_timescale) return current_timescale;
 	
 	this->current_timescale = timescale;
-	this->next_interval = get_next_interval(this->current_ymd, timescale);
+	
+	try{
+		this->next_interval = get_next_interval(this->current_ymd, timescale);
+	}
+	catch(const std::invalid_argument& invalid_timescale){
+		const std::string msg = std::string("Invalid timescale range (") + std::to_string(timescale::timescale_to_int(timescale)) + ") "
+								+ std::string("passed to get_next_interval() (BarGroup::change_timescale())");
+		fl_alert(msg.c_str());
+	}
 	
 	for(std::unique_ptr<Bar>& bar : bars)
 		bar->update_width(get_days_from_interval(), this->x());
