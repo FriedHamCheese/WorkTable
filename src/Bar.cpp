@@ -4,6 +4,8 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 
+#include <FL/fl_ask.h>
+
 #include <string>
 
 Bar::Bar(const BarConstructorArgs& args)
@@ -87,7 +89,7 @@ void Bar::bar_callback(Fl_Widget* const self, void* const data){
 		fl_alert("Exceeded maximum memory allocation while requesting window for editing task. (Bar::bar_callback())");		
 	}	
 	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::to_string("Caught unspecified exception while requesting window for editing task. (Bar::bar_callback())\n")
+		const std::string msg = std::string("Caught unspecified exception while requesting window for editing task. (Bar::bar_callback())\n")
 								+ unspecified_excp.what();
 	}
 	catch(...){
