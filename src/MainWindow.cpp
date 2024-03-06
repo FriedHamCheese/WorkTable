@@ -57,7 +57,6 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->zoomin_button.callback(MainWindow::zoomin_button_callback);
 	this->zoomout_button.callback(MainWindow::zoomout_button_callback);
 	
-	//this need some investigation why this requires manual end() and adds()
 	this->end();
 	this->add(this->bar_group);
 	this->add(this->new_task_button);
@@ -72,11 +71,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 
 //public
 void MainWindow::add_task(const Task& task){
-	try{
-		this->bar_group.add_task(task);
-	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
+	this->bar_group.add_task(task);	
 }
 
 bool MainWindow::delete_task(const int item_index){
@@ -86,9 +81,7 @@ bool MainWindow::delete_task(const int item_index){
 void MainWindow::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
 	try{
 		this->bar_group.modify_task(task_name, due_date, item_index);
-	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
+	}catch(const std::invalid_argument& invalid_item_index) {throw;}
 }
 
 
@@ -108,19 +101,21 @@ void MainWindow::save_tasks_to_file(){
 		this->bar_group.save_tasks_to_file();
 	}
 	catch(const std::length_error& exceeded_max_alloc){
-		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::length_error)"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");	
+		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::length_error)");	
 	}
 	catch(const std::bad_alloc& alloc_err){
-		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::bad_alloc)"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");			
+		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::bad_alloc)");			
 	}
 	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::string("Uncaught exception while saving tasks to file. (MainWindow::save_tasks_to_file())"
-											"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.\n")
-								+ std::string(unspecified_excp.what());
+		const std::string msg = std::string("Caught unspecified exception. (MainWindow::save_tasks_to_file())\n")
+								+ std::string(unspecified_excp.what())
+								+ "\nThe program will now terminate.";
 		fl_alert(msg.c_str());
 	}
+	catch(...){
+		fl_alert("Caught unspecified throw. (main.cpp)"
+				"\nThe program will now terminate.");
+	}	
 }
 
 void MainWindow::revert_to_tasks_from_file(){
@@ -146,18 +141,13 @@ void MainWindow::revert_to_tasks_from_file(){
 	}	
 	catch(const std::ios_base::failure& file_io_error) {
 		fl_alert("I/O error while reading task list to revert changes. (MainWindow::revert_to_tasks_from_file())"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
+				"\nCurrently displayed tasks are still intact.");
 	}
 	catch(const std::runtime_error& file_not_opened) {
 		fl_alert("Task list file unable to be opened. (MainWindow::revert_to_tasks_from_file())"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
+				"\nCurrently displayed tasks are still intact.");
 	}
-	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::string("Uncaught exception while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file())"
-											"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.\n")
-								+ std::string(unspecified_excp.what());
-		fl_alert(msg.c_str());
-	}
+	this->bar_group.redraw();
 }
 
 

@@ -103,21 +103,14 @@ void BarGroup::load_tasks_to_bars(){
 	try{
 		tasks = get_tasks();
 	}
-	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}	
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}	
-	catch(const std::ios_base::failure& file_io_error) {throw file_io_error;}
-	catch(const std::runtime_error& file_not_opened) {throw file_not_opened;}	
+	catch(const std::ios_base::failure& file_io_error) {throw;}
+	catch(const std::runtime_error& file_not_opened) {throw;}
 
 	const auto task_count = tasks.size();
+	std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
 	
-	try{
-		std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
-		
-		for(decltype(tasks.size()) i = 0; i < task_count; ++i)
-			this->add_bar(tasks[i], task_count, i);
-	}
-	catch(const std::bad_alloc& not_enough_temp_memory) {throw not_enough_temp_memory;}
-	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
+	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
+		this->add_bar(tasks[i], task_count, i);
 }
 
 
@@ -159,9 +152,9 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	return true;
 }
 
-//maybe sort only the tasks but not the bars?
 void BarGroup::save_tasks_to_file(){
 	std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
+	this->redraw();
 
 	std::vector<Task> tasks;
 	tasks.reserve(this->bars.size());
@@ -174,20 +167,27 @@ void BarGroup::save_tasks_to_file(){
 }
 
 void BarGroup::revert_to_tasks_from_file(){
+	std::vector<Task> tasks;
+	
+	try{
+		tasks = get_tasks();
+	}
+	catch(const std::ios_base::failure& file_io_error) {throw;}
+	catch(const std::runtime_error& file_not_opened) {throw;}	
+	
 	for(std::unique_ptr<Bar>& bar_uniptr : this->bars){
 		this->remove(bar_uniptr.get());
 		bar_uniptr.release();
 	}
 	this->bars.clear();
 	
-	try{
-		this->load_tasks_to_bars();
-	}
-	catch(const std::ios_base::failure& file_io_error) {throw file_io_error;}
-	catch(const std::runtime_error& file_not_opened) {throw file_not_opened;}
+	const auto task_count = tasks.size();
+	std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
+	
+	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
+		this->add_bar(tasks[i], task_count, i);	
 
 	this->unsaved_changes_made_to_tasks = false;	
-	this->redraw();
 }
 
 
@@ -294,8 +294,6 @@ void BarGroup::adjust_vertical_layout(){
 Timescale BarGroup::change_timescale(const Timescale timescale){
 	if(timescale == current_timescale) return current_timescale;
 	
-	this->current_timescale = timescale;
-	
 	try{
 		this->next_interval = get_next_interval(this->current_ymd, timescale);
 	}
@@ -303,7 +301,10 @@ Timescale BarGroup::change_timescale(const Timescale timescale){
 		const std::string msg = std::string("Invalid timescale range (") + std::to_string(timescale::timescale_to_int(timescale)) + ") "
 								+ std::string("passed to get_next_interval() (BarGroup::change_timescale())");
 		fl_alert(msg.c_str());
+		return current_timescale;
 	}
+	
+	this->current_timescale = timescale;
 	
 	for(std::unique_ptr<Bar>& bar : bars)
 		bar->update_width(get_days_from_interval(), this->x());

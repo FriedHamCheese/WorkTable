@@ -6,14 +6,12 @@
 
 #include <string>
 
-//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 Bar::Bar(const BarConstructorArgs& args)
 :	Bar(args.xpos, args.ypos, args.width, args.height, args.task_properties)
 {
 	
 }
 
-//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 Bar::Bar(const int xpos, const int ypos, const int width, const int height, const Task& task_properties)
 :	Fl_Button(xpos, ypos, width, height),
 	task_properties(task_properties)
@@ -99,7 +97,6 @@ void Bar::update_color_from_days_remaining() noexcept{
 }
 
 
-//may throw either: std::bad_alloc, std::length_error, or other undocumented exceptions.
 BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const Task& task_properties, 
 										const int task_count, const int item_index)
 :	task_properties(task_properties)

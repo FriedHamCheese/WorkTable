@@ -99,8 +99,10 @@ void TaskPropertiesWindow::save_button_pressed(){
 		this->modify_task();
 		break;
 		
-		default:
-		throw new std::logic_error("TaskPropertiesWindow::Mode case was not handled in switch.");
+		default:{
+			const std::string msg = "TaskPropertiesWindow::Mode case " + std::to_string(int(this->current_mode)) + " was not handled in switch.";
+			throw std::logic_error(msg);
+		}
 	}
 }
 
@@ -127,13 +129,13 @@ void TaskPropertiesWindow::delete_button_callback(Fl_Widget* const self, void* c
 void TaskPropertiesWindow::add_task(){
 	this->warning_message.label("");	
 	
+	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+	if(!task_has_name){
+		this->warning_message.label("Please name the task.");
+		return;
+	}
+	
 	try{
-		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-		if(!task_has_name){
-			this->warning_message.label("Please name the task.");
-			return;
-		}
-		
 		const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(this->due_date_dialog.value()));
 	
 		this->main_window->add_task(Task(new_due_date, std::string(task_name_dialog.value())));
@@ -142,40 +144,38 @@ void TaskPropertiesWindow::add_task(){
 	catch(const std::invalid_argument& invalid_ymd_str){
 		this->warning_message.copy_label(invalid_ymd_str.what());
 	}
-	catch(const std::bad_alloc& alloc_err){
-		fl_alert("Error allocating memory for adding task. (TaskPropertiesWindow::add_task(): std::bad_alloc)");
-	}
-	catch(const std::length_error& exceeded_max_alloc){
-		fl_alert("Not enough memory to add task. (TaskPropertiesWindow::add_task(): std::length_error)");
-	}
 }
 
 void TaskPropertiesWindow::delete_task(){
-	main_window->delete_task(modifying_item_index);
+	if(!main_window->delete_task(modifying_item_index)){
+		fl_alert("Failed to delete task."
+				"\nTaskPropertiesWindow::delete_task(): Invalid deletion index.");
+	}
 }
 
 void TaskPropertiesWindow::modify_task(){
 	this->warning_message.label("");
 	
+	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+	if(!task_has_name){
+		this->warning_message.label("Please name the task.");
+		return;
+	}		
+	
+	std::chrono::year_month_day new_due_date;
 	try{
-		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-		if(!task_has_name){
-			this->warning_message.label("Please name the task.");
-			return;
-		}		
-		
-		const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
+		new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
+	}
+	catch(const std::invalid_argument& invalid_ymd_str){
+		this->warning_message.copy_label(invalid_ymd_str.what());		
+	}		
 
+	try{
 		this->main_window->modify_task(task_name_dialog.value(), new_due_date, modifying_item_index);
 		this->hide();
 	}
 	catch(const std::invalid_argument& invalid_ymd_str){
-		this->warning_message.copy_label(invalid_ymd_str.what());
-	}
-	catch(const std::bad_alloc& alloc_err){
-		fl_alert("Error allocating memory for editing task. (TaskPropertiesWindow::modify_task(): std::bad_alloc)");
-	}
-	catch(const std::length_error& exceeded_max_alloc){
-		fl_alert("Not enough memory to edit task. (TaskPropertiesWindow::modify_task(): std::length_error)");
+		fl_alert("Failed to save changes."
+				"\nTaskPropertiesWindow::modify_task(): Invalid task index.");
 	}	
 }
