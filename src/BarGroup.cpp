@@ -296,6 +296,7 @@ Timescale BarGroup::change_timescale(const Timescale timescale){
 	
 	try{
 		this->next_interval = get_next_interval(this->current_ymd, timescale);
+		this->interval_date_label.copy_label(ymd_to_string(this->next_interval).c_str());
 	}
 	catch(const std::invalid_argument& invalid_timescale){
 		const std::string msg = std::string("Invalid timescale range (") + std::to_string(timescale::timescale_to_int(timescale)) + ") "
