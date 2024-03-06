@@ -29,7 +29,7 @@ class Bar : public Fl_Button{
 	
 	static int calc_bar_width(const std::chrono::days& days_remaining, const std::chrono::days& days_from_interval) noexcept;
 		
-	static void bar_callback(Fl_Widget* const self, void* const data) noexcept;
+	static void bar_callback(Fl_Widget* const self, void* const data);
 	
 	static bool due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept;
 

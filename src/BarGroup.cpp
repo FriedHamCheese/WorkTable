@@ -67,6 +67,16 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 		fl_alert("Task list file unable to be opened. (BarGroup::BarGroup())"
 				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
 	}
+	catch(const std::exception& unspecified_excp){
+		const std::string msg = std::string("Caught an unspecified exception while loading tasks. (BarGroup::BarGroup())")
+								+ '\n' + unspecified_excp.what()
+								+ "\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.";
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("Caught unspecified throw while loading tasks from file. (BarGroup::BarGroup())"
+				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
+	}	
 }
 
 BarGroup::~BarGroup() noexcept{

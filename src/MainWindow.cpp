@@ -107,46 +107,55 @@ void MainWindow::save_tasks_to_file(){
 		fl_alert("Not enough memory to save tasks to file. (MainWindow::save_tasks_to_file(): std::bad_alloc)");			
 	}
 	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::string("Caught unspecified exception. (MainWindow::save_tasks_to_file())\n")
-								+ std::string(unspecified_excp.what())
-								+ "\nThe program will now terminate.";
+		const std::string msg = std::string("Caught unspecified exception while saving tasks to file. (MainWindow::save_tasks_to_file())\n")
+								+ std::string(unspecified_excp.what());
 		fl_alert(msg.c_str());
 	}
 	catch(...){
-		fl_alert("Caught unspecified throw. (main.cpp)"
-				"\nThe program will now terminate.");
-	}	
+		fl_alert("Caught unspecified throw while saving tasks to file. (MainWindow::save_tasks_to_file())");
+	}
 }
 
 void MainWindow::revert_to_tasks_from_file(){
-	if(!this->bar_group.has_unsaved_changes_to_tasks()){
-		fl_alert("No changes were made to task list. No need to revert the changes.");
-		return;
-	}
-	
-	const int user_decision_revert = 1;
-	const int user_decision = fl_choice("Revert tasks back to task list in file?", "Cancel", "Revert", 0);
-	if (user_decision != user_decision_revert) return;
-	
 	try{
-		this->bar_group.revert_to_tasks_from_file();
+		if(!this->bar_group.has_unsaved_changes_to_tasks()){
+			fl_alert("No changes were made to task list. No need to revert the changes.");
+			return;
+		}
+		
+		const int user_decision_revert = 1;
+		const int user_decision = fl_choice("Revert tasks back to task list in file?", "Cancel", "Revert", 0);
+		if (user_decision != user_decision_revert) return;
+	
+		try{
+			this->bar_group.revert_to_tasks_from_file();
+		}
+		catch(const std::bad_alloc& alloc_err) {
+			fl_alert("Memory allocation error while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file(): std::bad_alloc)"
+					"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
+		}	
+		catch(const std::length_error& exceeded_max_alloc) {
+			fl_alert("Memory allocation error while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file(): std::length_error)"
+					"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
+		}	
+		catch(const std::ios_base::failure& file_io_error) {
+			fl_alert("I/O error while reading task list to revert changes. (MainWindow::revert_to_tasks_from_file())"
+					"\nCurrently displayed tasks are still intact.");
+		}
+		catch(const std::runtime_error& file_not_opened) {
+			fl_alert("Task list file unable to be opened. (MainWindow::revert_to_tasks_from_file())"
+					"\nCurrently displayed tasks are still intact.");
+		}
 	}
-	catch(const std::bad_alloc& alloc_err) {
-		fl_alert("Memory allocation error while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file(): std::bad_alloc)"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
+	catch(const std::exception& unspecified_excp){
+		const std::string msg = std::string("Caught unspecified exception while reverting tasks. (MainWindow::revert_to_tasks_from_file())\n")
+								+ std::string(unspecified_excp.what());
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("Caught unspecified throw while reverting tasks. (MainWindow::revert_to_tasks_from_file())");
 	}	
-	catch(const std::length_error& exceeded_max_alloc) {
-		fl_alert("Memory allocation error while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file(): std::length_error)"
-				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");
-	}	
-	catch(const std::ios_base::failure& file_io_error) {
-		fl_alert("I/O error while reading task list to revert changes. (MainWindow::revert_to_tasks_from_file())"
-				"\nCurrently displayed tasks are still intact.");
-	}
-	catch(const std::runtime_error& file_not_opened) {
-		fl_alert("Task list file unable to be opened. (MainWindow::revert_to_tasks_from_file())"
-				"\nCurrently displayed tasks are still intact.");
-	}
+	
 	this->bar_group.redraw();
 }
 

@@ -76,8 +76,23 @@ int Bar::calc_bar_width(const std::chrono::days& days_remaining, const std::chro
 	return std::clamp(int(width), 0, BarGroup::bar_max_width);
 }
 
-void Bar::bar_callback(Fl_Widget* const self, void* const data) noexcept{
-	((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
+void Bar::bar_callback(Fl_Widget* const self, void* const data){
+	try{
+		((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
+	}
+	catch(const std::bad_alloc& alloc_err){
+		fl_alert("Caught memory allocation error while requesting window for editing task. (Bar::bar_callback())");
+	}
+	catch(const std::length_error& exceeded_max_alloc){
+		fl_alert("Exceeded maximum memory allocation while requesting window for editing task. (Bar::bar_callback())");		
+	}	
+	catch(const std::exception& unspecified_excp){
+		const std::string msg = std::to_string("Caught unspecified exception while requesting window for editing task. (Bar::bar_callback())\n")
+								+ unspecified_excp.what();
+	}
+	catch(...){
+		fl_alert("Caught unspecified throw while requesting window for editing task. (Bar::bar_callback())");				
+	}
 }
 
 bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept{
