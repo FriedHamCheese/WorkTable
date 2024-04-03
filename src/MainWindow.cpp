@@ -41,11 +41,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 		MainWindow::timescale_text_box_width, 
 		MainWindow::timescale_text_box_height
 	)
-{	
-	this->new_task_button.labelcolor(FL_GRAY);	
-	this->save_button.labelcolor(fl_rgb_color(48, 48, 48));	
-	this->discard_button.labelcolor(fl_rgb_color(48, 48, 48));	
-	
+{		
 	this->timescale_text_box.align(FL_ALIGN_INSIDE | FL_ALIGN_RIGHT);
 	this->timescale_text_box.label(timescale::get_timescale_str(timescale::default_timescale));
 
@@ -56,6 +52,22 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	
 	this->zoomin_button.callback(MainWindow::zoomin_button_callback);
 	this->zoomout_button.callback(MainWindow::zoomout_button_callback);
+	
+	this->new_task_button.color(fl_rgb_color(230));
+	this->save_button.color(fl_rgb_color(230));
+	this->discard_button.color(fl_rgb_color(230));
+	this->zoomout_button.color(fl_rgb_color(230));
+	this->zoomin_button.color(fl_rgb_color(230));
+	
+	this->new_task_button.labelcolor(fl_rgb_color(130));
+	this->save_button.labelcolor(fl_rgb_color(100));
+	this->discard_button.labelcolor(fl_rgb_color(100));
+	
+	this->new_task_button.box(FL_FLAT_BOX);
+	this->save_button.box(FL_FLAT_BOX);
+	this->discard_button.box(FL_FLAT_BOX);
+	this->zoomout_button.box(FL_FLAT_BOX);
+	this->zoomin_button.box(FL_FLAT_BOX);	
 	
 	this->end();
 	this->add(this->bar_group);
@@ -98,6 +110,11 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 
 void MainWindow::save_tasks_to_file(){
 	try{
+		if(!this->bar_group.has_unsaved_changes_to_tasks()){
+			fl_alert("No changes were made to task list. No need to save.");
+			return;
+		}
+		
 		this->bar_group.save_tasks_to_file();
 	}
 	catch(const std::length_error& exceeded_max_alloc){

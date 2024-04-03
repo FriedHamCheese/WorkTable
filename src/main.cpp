@@ -5,7 +5,7 @@
 
 int main(){
 	try{
-		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.29");
+		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.39");
 		window.show();
 		return Fl::run();
 	}
