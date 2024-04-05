@@ -3,6 +3,7 @@
 
 #include "time_calc.hpp"
 
+#include <vector>
 #include <string>
 #include <chrono>
 
@@ -25,6 +26,11 @@ class Task{
 	std::chrono::year_month_day _due_date;
 	std::chrono::days _days_remaining;
 	std::string _name;
+};
+
+struct TaskGroup{
+	std::string group_name;
+	std::vector<Task> tasks;
 };
 
 #endif

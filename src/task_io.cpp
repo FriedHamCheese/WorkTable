@@ -69,65 +69,99 @@ namespace task_io_internal{
 		lines.shrink_to_fit();
 		return lines;
 	}
+	
+	
 
-	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines){
-		std::vector<TaskStr> tasks_str; 
+	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines){
+		std::vector<TaskStrGroup> task_str_groups; 
+		task_str_groups.reserve(20);
 		
-		tasks_str.reserve(20);
+		TaskStrGroup fetching_taskstr_group;		
 		
-		for(const std::string& line : lines){
-			std::string date_str; date_str.reserve(10);
-			std::string name_str; name_str.reserve(20);
+		bool fetching_group = false;
+		const std::size_t line_count = lines.size();
+		for(std::size_t line_i = 0; line_i < line_count; line_i++){
+			const std::string& line = lines[line_i];
 			
-			const auto line_length = line.size();
-			auto date_str_end_index = line_length; //default
-			
-			for(decltype(line.size()) i = 0; i < line_length; ++i){
-				if(line[i] == ','){
-					date_str_end_index = i;
-					break;
+			const bool nested_group = (line.back() == '{') && fetching_group;
+			if(nested_group){
+				const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Detected nested task groups, ignoring the latter.";
+				fl_alert(msg.c_str());	
+				continue;
+			}
+			if(line.back() == '{'){
+				fetching_group = true;
+				fetching_taskstr_group.group_name = line.substr(0, line.size() - 1);
+				continue;
+			}
+
+			if(line == "}") fetching_group = false;
+			else{
+				std::string date_str; date_str.reserve(10);
+				std::string name_str; name_str.reserve(20);
+				
+				const auto line_length = line.size();
+				auto date_str_end_index = line_length; //default
+				
+				for(decltype(line.size()) i = 0; i < line_length; ++i){
+					if(line[i] == ','){
+						date_str_end_index = i;
+						break;
+					}
+					else date_str += line[i];
 				}
-				else date_str += line[i];
-			}
-					
-			//+2 for skipping comma and space
-			for(auto i = date_str_end_index+2; i < line_length; ++i){
-				name_str += line[i];
+				
+				name_str += line.substr(date_str_end_index+2, line_length);				
+				fetching_taskstr_group.taskstrs.emplace_back(date_str, name_str);
 			}
 			
-			tasks_str.emplace_back(date_str, name_str);
+			const bool last_line = line_i + 1 == line_count;
+			if(!fetching_group || last_line){
+				if(fetching_taskstr_group.taskstrs.size() > 0){
+					task_str_groups.push_back(fetching_taskstr_group);
+					fetching_taskstr_group.taskstrs.clear();
+					fetching_taskstr_group.group_name.clear();
+				}
+			}
 		}
 
-		tasks_str.shrink_to_fit();
-		return tasks_str;
+		task_str_groups.shrink_to_fit();
+		return task_str_groups;
 	}
-
-	std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs){
-		std::vector<Task> tasks; 
+	
+	std::vector<TaskGroup> TaskStrGroups_to_TaskGroups(const std::vector<TaskStrGroup>& taskstr_groups){
+		std::vector<TaskGroup> taskgroups; 
+		taskgroups.reserve(taskstr_groups.size());
 		
-		tasks.reserve(taskstrs.size());
+		const std::chrono::year_month_day current_date = get_current_ymd();
+		const std::size_t taskgroup_count = taskstr_groups.size();
 		
-		const std::chrono::year_month_day current_ymd = get_current_ymd();
-		
-		for(const TaskStr& task_str : taskstrs){
-			try{
-				const std::chrono::year_month_day task_ymd = str_to_ymd(task_str.due_date);		
-				tasks.emplace_back(task_ymd, task_str.name, current_ymd);
+		for(std::size_t taskgroup_i = 0; taskgroup_i < taskgroup_count; taskgroup_i++){
+			TaskGroup fetching_taskgroup;
+			const TaskStrGroup& current_taskstr_group = taskstr_groups[taskgroup_i];
+			fetching_taskgroup.group_name = current_taskstr_group.group_name;
+			
+			const std::size_t task_count = current_taskstr_group.taskstrs.size();
+			for(std::size_t task_i = 0; task_i < task_count; task_i++){
+				const TaskStr& current_taskstr = current_taskstr_group.taskstrs[task_i];
+				try{
+					const std::chrono::year_month_day due_date = str_to_ymd(current_taskstr.due_date);
+					fetching_taskgroup.tasks.emplace_back(due_date, current_taskstr.name, current_date);
+				}
+				catch(std::invalid_argument& invalid_ymd){
+					const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Task skipped due to invalid due date.";
+					fl_alert(msg.c_str());
+				}
 			}
-			catch(const std::invalid_argument& invalid_ymd){
-				//[name] ... (date).
-				//...
-				const std::string msg = task_str.name + " not loaded due to invalid due date" + " (" + task_str.due_date + ")."
-										+ "\n(task_io.cpp: taskstrs_to_tasks())";
-				fl_alert(msg.c_str());
-			}
+			
+			taskgroups.push_back(fetching_taskgroup);
 		}
-		
-		return tasks;
+
+		return taskgroups;
 	}
 }
 
-std::vector<Task> get_tasks(){
+std::vector<TaskGroup> get_tasks(){
 	task_io_internal::file_buffer raw_file_data;
 	try{
 		raw_file_data = task_io_internal::get_raw_file("tasks.txt");
@@ -136,11 +170,11 @@ std::vector<Task> get_tasks(){
 	catch(const std::runtime_error& file_not_opened) {throw;}
 
 	const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(raw_file_data);
-	const std::vector<task_io_internal::TaskStr> taskstrs = task_io_internal::lines_to_taskstrs(lines);
+	const std::vector<task_io_internal::TaskStrGroup> taskstr_groups = task_io_internal::lines_to_TaskStrGroup(lines);
 
-	const std::vector<Task> tasks = task_io_internal::taskstrs_to_tasks(taskstrs);
-	return tasks;
+	return task_io_internal::TaskStrGroups_to_TaskGroups(taskstr_groups);
 }
+
 
 //returns string version of number with always 2 digits.
 std::string int_to_2char(const unsigned num){

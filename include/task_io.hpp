@@ -19,16 +19,21 @@ namespace task_io_internal{
 		TaskStr(const std::string& due_date, const std::string& name);
 	};
 	
+	struct TaskStrGroup{
+		std::string group_name;
+		std::vector<TaskStr> taskstrs;
+	};
+	
 	using file_buffer = std::pair<std::unique_ptr<char[]>, std::size_t>;
 	
 	file_buffer get_raw_file(const std::string& filename);
 
 	std::vector<std::string> buffer_to_separated_lines(const file_buffer& buffer);
-	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines);
-	std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs);
+	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines);
+	std::vector<TaskGroup> TaskStrGroups_to_TaskGroups(const std::vector<TaskStrGroup>& taskstr_groups);
 }
 
-std::vector<Task> get_tasks();
+std::vector<TaskGroup> get_tasks();
 
 std::string int_to_2char(const unsigned num);
 void overwrite_taskfile(const std::vector<Task>& tasks);
