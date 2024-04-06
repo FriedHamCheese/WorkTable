@@ -3,7 +3,7 @@
 #include <FL/Fl.H>
 #include <FL/fl_ask.h>
 
-int main(){/*
+int main(){
 	try{
 		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.39");
 		window.show();
@@ -28,7 +28,5 @@ int main(){/*
 				"\nThe program will now terminate.");
 	}
 	
-	return -1;*/
-	
-	
+	return -1;
 }

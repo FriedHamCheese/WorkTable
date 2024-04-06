@@ -15,12 +15,12 @@ struct BarConstructorArgs;
 class Bar : public Fl_Button{
 	public:
 	Bar(const BarConstructorArgs& args);
-	Bar(const int xpos, const int ypos, const int width, const int height, const Task& task_properties);
+	Bar(const int xpos, const int ypos, const int width, const int height, const TaskGroup& task_group);
 	
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
 	std::chrono::year_month_day get_due_date() const;
-	Task get_task_properties() const {return this->task_properties;}
+	TaskGroup get_task_properties() const {return this->task_group;}
 
 	static int calc_height(const int height_with_yspacing) noexcept;
 	static int calc_height(const int timeline_height, const int task_count) noexcept;
@@ -34,7 +34,7 @@ class Bar : public Fl_Button{
 	static bool due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept;
 
 	private:
-	Task task_properties;	
+	TaskGroup task_group;
 	
 	void update_label();
 	void update_color_from_days_remaining() noexcept;
@@ -47,14 +47,15 @@ class Bar : public Fl_Button{
 class BarGroup;
 
 struct BarConstructorArgs{
-	BarConstructorArgs(const BarGroup* const parent, const Task& task_properties, 
+	BarConstructorArgs(const BarGroup* const parent, const TaskGroup& task_group, 
 						const int task_count, const int item_index);
 	
 	int xpos;
 	int ypos;
 	int width;
 	int height;
-	Task task_properties;
+	std::chrono::days furthest_days_remaining;
+	TaskGroup task_group;
 };
 
 Fl_Color get_bar_color(const int days_until_deadline) noexcept;

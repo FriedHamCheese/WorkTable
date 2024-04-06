@@ -1,5 +1,5 @@
 SRCDIR := ./src
-SRCFILES := ./src/task_io.cpp ./src/main.cpp ./src/Task.cpp ./src/time_calc.cpp
+SRCFILES := $(wildcard $(SRCDIR)/*.cpp)
 
 OBJDIR := ./bin
 OBJFILES := $(SRCFILES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)

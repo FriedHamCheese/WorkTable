@@ -49,7 +49,7 @@ class BarGroup : public Fl_Group{
 	void draw() override;
 		
 	private:
-	void add_bar(const Task& task, const int total_items, const int item_index);
+	void add_bar(const TaskGroup& task_group, const int total_items, const int item_index);
 	void add_bar(const Task& task);
 	
 	int_least64_t get_item_index(const Bar* const bar) const;

@@ -108,19 +108,19 @@ BarGroup::~BarGroup() noexcept{
 }
 
 void BarGroup::load_tasks_to_bars(){
-	std::vector<Task> tasks;
+	std::vector<TaskGroup> task_groups;
 	
 	try{
-		tasks = get_tasks();
+		task_groups = get_tasks();
 	}
 	catch(const std::ios_base::failure& file_io_error) {throw;}
 	catch(const std::runtime_error& file_not_opened) {throw;}
 
-	const auto task_count = tasks.size();
-	std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
+	const auto task_count = task_groups.size();
+	//std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
 	
-	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
-		this->add_bar(tasks[i], task_count, i);
+	for(decltype(task_groups.size()) i = 0; i < task_count; ++i)
+		this->add_bar(task_groups[i], task_count, i);
 }
 
 
@@ -158,11 +158,11 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	const bool invalid_item = item_index < 0;
 	if(invalid_item) return false;
 	
-	((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
+	//((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
 	return true;
 }
 
-void BarGroup::save_tasks_to_file(){
+void BarGroup::save_tasks_to_file(){/*
 	std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
 	this->redraw();
 
@@ -173,18 +173,18 @@ void BarGroup::save_tasks_to_file(){
 		tasks.emplace_back(bar->get_task_properties());	
 	
 	overwrite_taskfile(tasks);
-	this->unsaved_changes_made_to_tasks = false;
+	this->unsaved_changes_made_to_tasks = false;*/
 }
 
 void BarGroup::revert_to_tasks_from_file(){
-	std::vector<Task> tasks;
+	std::vector<TaskGroup> task_groups;
 	
 	try{
-		tasks = get_tasks();
+		task_groups = get_tasks();
 	}
 	catch(const std::ios_base::failure& file_io_error) {throw;}
 	catch(const std::runtime_error& file_not_opened) {throw;}	
-	
+	/*
 	for(std::unique_ptr<Bar>& bar_uniptr : this->bars){
 		this->remove(bar_uniptr.get());
 		bar_uniptr.release();
@@ -197,7 +197,7 @@ void BarGroup::revert_to_tasks_from_file(){
 	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
 		this->add_bar(tasks[i], task_count, i);	
 
-	this->unsaved_changes_made_to_tasks = false;	
+	this->unsaved_changes_made_to_tasks = false;	*/
 }
 
 
@@ -250,10 +250,10 @@ void BarGroup::draw(){
 
 
 //private:
-void BarGroup::add_bar(const Task& task, const int total_items, const int item_index){
+void BarGroup::add_bar(const TaskGroup& task_group, const int total_items, const int item_index){
 	Bar* bar;
 	try{
-		bar = new Bar(BarConstructorArgs(this, task, total_items, item_index));
+		bar = new Bar(BarConstructorArgs(this, task_group, total_items, item_index));
 		this->bars.emplace_back(bar);		
 	}
 	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
@@ -268,7 +268,7 @@ void BarGroup::add_bar(const Task& task){
 	const auto incremented_item_index = incremented_bar_count - 1;
 	
 	try{
-		this->add_bar(task, incremented_bar_count, incremented_item_index);
+		//this->add_bar(task, incremented_bar_count, incremented_item_index);
 	}
 	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
 	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
