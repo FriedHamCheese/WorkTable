@@ -4,23 +4,24 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 
+#include <FL/fl_draw.h>
 #include <FL/fl_ask.h>
 
 #include <string>
+#include <iostream>
 
 Bar::Bar(const BarConstructorArgs& args)
 :	Bar(args.xpos, args.ypos, args.width, args.height, args.task_group)
 {
-	
 }
 
-Bar::Bar(const int xpos, const int ypos, const int width, const int height, const TaskGroup& task_group)
+Bar::Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group)
 :	Fl_Button(xpos, ypos, width, height),
 	task_group(task_group)
 {
 	this->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);			
 	this->update_color_from_days_remaining();
-	this->box(FL_FLAT_BOX);
+	this->box(FL_NO_BOX);
 	this->callback(Bar::bar_callback);
 	
 	this->update_label();
@@ -28,7 +29,6 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
 	this->task_group.group_name = task_name;
-	//this->task_group.due_date(due_date);
 	this->update_label();
 	
 	this->update_width(days_from_interval, parent_xpos);	
@@ -106,13 +106,31 @@ bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexce
 
 //private
 void Bar::update_label(){
-	//[TaskGroup name] ([days_remaining] days)
-	//const std::string bar_string = task_group.group_name() + " (" + std::to_string(task_group.days_remaining().count()) + " days)";
-	//this->copy_label(bar_string.c_str());	
+	std::string label;
+		//[Task name] ([days] days)
+	if(this->is_single_task()) 
+		label = task_group.tasks[0].name() + " (" + std::to_string(task_group.tasks[0].days_remaining().count()) + " days)";
+	else
+		//[TaskGroup name] ([days] - [days] days)		
+		label = task_group.group_name + " (" + std::to_string(task_group.nearest_due_date_task().days_remaining().count()) + "-" + std::to_string(task_group.furthest_due_date_task().days_remaining().count()) + " days)";
+	
+	this->copy_label(label.c_str());		
 }
 
 void Bar::update_color_from_days_remaining() noexcept{
-	//this->color(get_bar_color(this->task_group.days_remaining().count()));
+	this->redraw();
+}
+
+void Bar::draw(){
+	TaskGroup sorted_task_group = this->task_group;
+	std::sort(sorted_task_group.tasks.begin(), sorted_task_group.tasks.end(), Task::due_date_is_later);
+	
+	for(const Task& task : sorted_task_group.tasks){
+		const float of_furthest_due_date = float(task.days_remaining().count()) / float(this->task_group.furthest_due_date_task().days_remaining().count());
+		const float width = float(this->w()) * of_furthest_due_date;
+		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width, this->h(), get_bar_color(task.days_remaining().count()));
+	}
+	Fl_Button::draw();
 }
 
 
@@ -120,21 +138,14 @@ BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskG
 										const int task_count, const int item_index)
 :	task_group(task_group)
 {
-	
-	std::chrono::days furthest_days_remaining = task_group.tasks[0].days_remaining();
-	for(const Task& task : task_group.tasks){
-		const std::chrono::days days_remaining = task.days_remaining();
-		if(days_remaining > furthest_days_remaining) furthest_days_remaining = days_remaining;
-	}
-	this->furthest_days_remaining = furthest_days_remaining;
-	const bool use_overdue_position = furthest_days_remaining.count() < 1;
+	const bool use_overdue_position = this->task_group.furthest_due_date_task().days_remaining().count() < 1;
 	
 	if(use_overdue_position){
 		xpos = parent->x();
 		width = BarGroup::bar_xoffset;
 	}else{
 		xpos = parent->x() + BarGroup::bar_xoffset;
-		width = Bar::calc_bar_width(furthest_days_remaining, parent->get_days_from_interval());
+		width = Bar::calc_bar_width(this->task_group.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
 	}
 	
 	const int bar_height_with_yspacing = Bar::calc_height_with_yspacing(parent->h(), task_count);
@@ -159,4 +170,22 @@ Fl_Color get_bar_color(const int days_until_deadline) noexcept{
 		return yellow;
 	else 
 		return green;
+}
+
+
+Bar_TaskGroup::Bar_TaskGroup(const TaskGroup& task_group)
+:	TaskGroup(task_group)
+{
+	Task nearest_due_date_task = this->tasks[0];
+	Task furthest_due_date_task = this->tasks[0];
+	
+	for(const Task& task : this->tasks){		
+		if(task.due_date() > furthest_due_date_task.due_date()) 
+			furthest_due_date_task = task;
+		if(task.due_date() < nearest_due_date_task.due_date()) 
+			nearest_due_date_task = task;
+	}
+		
+	this->_nearest_due_date_task = nearest_due_date_task;
+	this->_furthest_due_date_task = furthest_due_date_task;
 }

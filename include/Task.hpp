@@ -9,6 +9,7 @@
 
 class Task{
 	public:
+	Task() :_due_date(), _days_remaining(0), _name(){};
 	Task(const std::chrono::year_month_day& due_date, const std::string& name);	
 	Task(const std::chrono::year_month_day& due_date, const std::string& name, const std::chrono::year_month_day& current_ymd);
 	
@@ -21,6 +22,7 @@ class Task{
 	void name(const std::string& new_name);
 
 	static bool due_date_is_earlier(const Task& lhs, const Task& rhs) noexcept;	
+	static bool due_date_is_later(const Task& lhs, const Task& rhs) noexcept;	
 	
 	private:
 	std::chrono::year_month_day _due_date;

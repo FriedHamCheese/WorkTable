@@ -21,7 +21,11 @@ CXXFLAGS := -I./include $(FLTK_CXXFLAGS) --std=c++20 -Wall -pedantic -g3
 LDFLAGS := $(FLTK_LDFLAGS)
 
 .PHONY: all
-all: $(EXECFILE) build_test
+all: build build_test
+
+.PHONY: build
+build: $(EXECFILE)
+	$(EXECFILE)
 
 .PHONY: path_debug
 path_debug:
