@@ -20,6 +20,7 @@ class MainWindow : public Fl_Window{
 
 	void show_window_for_creating_new_task();
 	void show_window_for_editing_task(const Task& task_properties, const int item_index);
+	void show_taskgroups();
 	
 	void save_tasks_to_file();
 	void revert_to_tasks_from_file();
@@ -30,6 +31,7 @@ class MainWindow : public Fl_Window{
 	static void new_task_button_callback(Fl_Widget* const self_ptr, void* const data);
 	static void save_button_callback(Fl_Widget* const self_ptr, void* const data);
 	static void discard_button_callback(Fl_Widget* const self_ptr, void* const data);
+	static void taskgroup_button_callback(Fl_Widget* const self_ptr, void* const data);
 	
 	static void zoomin_button_callback(Fl_Widget* const self_ptr, void* const data);
 	static void zoomout_button_callback(Fl_Widget* const self_ptr, void* const data);
@@ -44,6 +46,7 @@ class MainWindow : public Fl_Window{
 	Fl_Button new_task_button;
 	Fl_Button save_button;
 	Fl_Button discard_button;
+	Fl_Button taskgroup_button;
 	Fl_Button zoomout_button;
 	Fl_Button zoomin_button;	
 	Fl_Box timescale_text_box;

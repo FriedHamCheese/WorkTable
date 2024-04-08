@@ -26,6 +26,7 @@
 
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
 :	Fl_Group(xpos, ypos, width, height),
+	paged_taskgroups(),
 	current_date_label(xpos_center_by_point(this->date_label_width, this->current_date_line_xpos()), 
 						ypos_below(*this) - this->date_label_yraise, 
 						this->date_label_width, this->date_label_height
@@ -37,7 +38,8 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 	current_ymd(get_current_ymd()),
 	current_timescale(timescale::default_timescale),
 	next_interval(get_next_interval(this->current_ymd, this->current_timescale)),
-	unsaved_changes_made_to_tasks(false)
+	unsaved_changes_made_to_tasks(false),
+	task_group_id(-1)
 {
 	this->end();
 	
@@ -158,8 +160,45 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	const bool invalid_item = item_index < 0;
 	if(invalid_item) return false;
 	
-	//((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_task_properties(), item_index);
+	((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_single_task(), item_index);
 	return true;
+}
+
+void BarGroup::display_tasks_in_task_group(const Bar* const bar){
+	std::int_least64_t bar_index = this->get_item_index(bar);
+	this->task_group_id = bar_index;
+	
+	this->paged_taskgroups.clear();
+	
+	for(const std::unique_ptr<Bar>& bar : this->bars){
+		this->paged_taskgroups.push_back(bar->get_taskgroup());
+		this->remove(bar.get());
+	}
+	
+	this->bars.clear();
+	
+	const std::size_t task_count = this->paged_taskgroups[bar_index].tasks.size();
+	for(std::size_t i = 0; i < task_count; ++i){
+		const Task task = this->paged_taskgroups[bar_index].tasks[i];
+		this->add_bar({task.name(), {task}}, task_count, i);
+	}
+	
+	this->redraw();
+}
+
+void BarGroup::show_taskgroups(){
+	if(this->task_group_id == -1) return;
+	this->bars.clear();
+	
+	const std::size_t taskgroup_count = this->paged_taskgroups.size();
+	for(std::size_t i = 0; i < taskgroup_count; i++){
+		this->add_bar(this->paged_taskgroups[i], taskgroup_count, i);
+	}
+
+	this->paged_taskgroups.clear();
+	this->task_group_id = -1;
+	
+	this->redraw();
 }
 
 void BarGroup::save_tasks_to_file(){/*

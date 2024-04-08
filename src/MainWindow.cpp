@@ -27,6 +27,9 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	discard_button(xpos_right_of(save_button), ypos_below(bar_group), 
 					MainWindow::button_width, MainWindow::button_height, "@undo"
 	),
+	taskgroup_button(xpos_right_of(discard_button) + 10, ypos_below(bar_group),
+					MainWindow::button_width, MainWindow::button_height, "@<-"
+	),
 	zoomout_button(
 		bar_group.xpos_right_of_interval_date_label() - MainWindow::button_width, ypos_below(bar_group),
 		MainWindow::button_width, MainWindow::button_height, "-"
@@ -49,6 +52,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	
 	this->save_button.callback(MainWindow::save_button_callback);	
 	this->discard_button.callback(MainWindow::discard_button_callback);	
+	this->taskgroup_button.callback(MainWindow::taskgroup_button_callback);	
 	
 	this->zoomin_button.callback(MainWindow::zoomin_button_callback);
 	this->zoomout_button.callback(MainWindow::zoomout_button_callback);
@@ -56,16 +60,19 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->new_task_button.color(fl_rgb_color(230));
 	this->save_button.color(fl_rgb_color(230));
 	this->discard_button.color(fl_rgb_color(230));
+	this->taskgroup_button.color(fl_rgb_color(230));
 	this->zoomout_button.color(fl_rgb_color(230));
 	this->zoomin_button.color(fl_rgb_color(230));
 	
 	this->new_task_button.labelcolor(fl_rgb_color(130));
 	this->save_button.labelcolor(fl_rgb_color(100));
 	this->discard_button.labelcolor(fl_rgb_color(100));
+	this->taskgroup_button.labelcolor(fl_rgb_color(100));
 	
 	this->new_task_button.box(FL_FLAT_BOX);
 	this->save_button.box(FL_FLAT_BOX);
 	this->discard_button.box(FL_FLAT_BOX);
+	this->taskgroup_button.box(FL_FLAT_BOX);	
 	this->zoomout_button.box(FL_FLAT_BOX);
 	this->zoomin_button.box(FL_FLAT_BOX);	
 	
@@ -74,6 +81,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->add(this->new_task_button);
 	this->add(this->save_button);
 	this->add(this->discard_button);	
+	this->add(this->taskgroup_button);
 	this->add(this->zoomin_button);
 	this->add(this->zoomout_button);
 	this->add(this->timescale_text_box);
@@ -96,6 +104,9 @@ void MainWindow::modify_task(const char* const task_name, const std::chrono::yea
 	}catch(const std::invalid_argument& invalid_item_index) {throw;}
 }
 
+void MainWindow::show_taskgroups(){
+	this->bar_group.show_taskgroups();
+}
 
 void MainWindow::show_window_for_creating_new_task(){
 	this->task_properties_window.set_window_for_creating_task();
@@ -203,6 +214,10 @@ void MainWindow::save_button_callback(Fl_Widget* const self_ptr, void* const dat
 
 void MainWindow::discard_button_callback(Fl_Widget* const self_ptr, void* const data){
 	((MainWindow*)(self_ptr->parent()))->revert_to_tasks_from_file();
+}
+
+void MainWindow::taskgroup_button_callback(Fl_Widget* const self_ptr, void* const data){
+	((MainWindow*)(self_ptr->parent()))->show_taskgroups();	
 }
 
 void MainWindow::zoomin_button_callback(Fl_Widget* const self_ptr, void* const data){

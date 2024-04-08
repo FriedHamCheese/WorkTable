@@ -30,7 +30,8 @@ class Bar : public Fl_Button{
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
 	std::chrono::year_month_day get_due_date() const;
-	//TaskGroup get_task_properties() const {return this->task_group;}
+	Task get_single_task() const {return this->task_group.tasks[0];}
+	TaskGroup get_taskgroup() const {return this->task_group;}
 	bool is_single_task() const {return this->task_group.tasks.size() == 1;}
 
 	static int calc_height(const int height_with_yspacing) noexcept;

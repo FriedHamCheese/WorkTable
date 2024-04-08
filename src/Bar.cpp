@@ -29,6 +29,7 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
 	this->task_group.group_name = task_name;
+	
 	this->update_label();
 	
 	this->update_width(days_from_interval, parent_xpos);	
@@ -82,7 +83,11 @@ int Bar::calc_bar_width(const std::chrono::days& days_remaining, const std::chro
 
 void Bar::bar_callback(Fl_Widget* const self, void* const data){
 	try{
-		((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
+		if(((Bar*)(self))->is_single_task())
+			((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
+		else{
+			((BarGroup*)(self->parent()))->display_tasks_in_task_group((Bar*)(self));
+		}
 	}
 	catch(const std::bad_alloc& alloc_err){
 		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::bar_callback())");
@@ -121,11 +126,9 @@ void Bar::update_color_from_days_remaining() noexcept{
 	this->redraw();
 }
 
-void Bar::draw(){
-	TaskGroup sorted_task_group = this->task_group;
-	std::sort(sorted_task_group.tasks.begin(), sorted_task_group.tasks.end(), Task::due_date_is_later);
-	
-	for(const Task& task : sorted_task_group.tasks){
+void Bar::draw(){	
+	for(std::int_least64_t i = this->task_group.tasks.size()-1; i >= 0; i--){
+		const Task& task = this->task_group.tasks[i];
 		const float of_furthest_due_date = float(task.days_remaining().count()) / float(this->task_group.furthest_due_date_task().days_remaining().count());
 		const float width = float(this->w()) * of_furthest_due_date;
 		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width, this->h(), get_bar_color(task.days_remaining().count()));
@@ -176,16 +179,7 @@ Fl_Color get_bar_color(const int days_until_deadline) noexcept{
 Bar_TaskGroup::Bar_TaskGroup(const TaskGroup& task_group)
 :	TaskGroup(task_group)
 {
-	Task nearest_due_date_task = this->tasks[0];
-	Task furthest_due_date_task = this->tasks[0];
-	
-	for(const Task& task : this->tasks){		
-		if(task.due_date() > furthest_due_date_task.due_date()) 
-			furthest_due_date_task = task;
-		if(task.due_date() < nearest_due_date_task.due_date()) 
-			nearest_due_date_task = task;
-	}
-		
-	this->_nearest_due_date_task = nearest_due_date_task;
-	this->_furthest_due_date_task = furthest_due_date_task;
+	std::sort(this->tasks.begin(), this->tasks.end(), Task::due_date_is_earlier);
+	this->_nearest_due_date_task = this->tasks.front();
+	this->_furthest_due_date_task = this->tasks.back();
 }

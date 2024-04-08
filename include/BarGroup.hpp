@@ -25,9 +25,12 @@ class BarGroup : public Fl_Group{
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 
 	bool request_window_for_editing_task(const Bar* const bar) const;
+	void display_tasks_in_task_group(const Bar* const bar);
+	void show_taskgroups();
 	
 	void save_tasks_to_file();
 	void revert_to_tasks_from_file();
+	
 	
 	std::chrono::days get_days_from_interval() const;
 	
@@ -61,6 +64,7 @@ class BarGroup : public Fl_Group{
 	int next_interval_date_line_xpos() const;
 	
 	std::vector<std::unique_ptr<Bar>> bars;
+	std::vector<TaskGroup> paged_taskgroups;
 	Fl_Box current_date_label;
 	Fl_Box interval_date_label;
 	
@@ -70,6 +74,7 @@ class BarGroup : public Fl_Group{
 	std::chrono::year_month_day next_interval;
 
 	bool unsaved_changes_made_to_tasks;
+	std::int_least64_t task_group_id;
 	
 	static bool bar_due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs);
 	
