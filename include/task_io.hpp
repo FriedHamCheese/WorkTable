@@ -36,7 +36,7 @@ namespace task_io_internal{
 std::vector<TaskGroup> get_tasks();
 
 std::string int_to_2char(const unsigned num);
-void overwrite_taskfile(const std::vector<Task>& tasks);
+void overwrite_taskfile(const std::vector<TaskGroup>& taskgroups);
 
 std::string task_to_str(const Task& task);
 

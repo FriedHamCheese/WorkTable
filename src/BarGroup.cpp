@@ -202,18 +202,18 @@ void BarGroup::show_taskgroups(){
 	this->redraw();
 }
 
-void BarGroup::save_tasks_to_file(){/*
-	std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
-	this->redraw();
+void BarGroup::save_tasks_to_file(){
+	//std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
+	//this->redraw();
 
-	std::vector<Task> tasks;
-	tasks.reserve(this->bars.size());
+	std::vector<TaskGroup> taskgroups;
+	taskgroups.reserve(this->bars.size());
 	
 	for(const std::unique_ptr<Bar>& bar : this->bars)
-		tasks.emplace_back(bar->get_task_properties());	
+		taskgroups.emplace_back(bar->get_taskgroup());	
 	
-	overwrite_taskfile(tasks);
-	this->unsaved_changes_made_to_tasks = false;*/
+	overwrite_taskfile(taskgroups);
+	this->unsaved_changes_made_to_tasks = false;
 }
 
 void BarGroup::revert_to_tasks_from_file(){
@@ -224,20 +224,20 @@ void BarGroup::revert_to_tasks_from_file(){
 	}
 	catch(const std::ios_base::failure& file_io_error) {throw;}
 	catch(const std::runtime_error& file_not_opened) {throw;}	
-	/*
+	
 	for(std::unique_ptr<Bar>& bar_uniptr : this->bars){
 		this->remove(bar_uniptr.get());
 		bar_uniptr.release();
 	}
 	this->bars.clear();
 	
-	const auto task_count = tasks.size();
-	std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
+	const auto taskgroup_count = task_groups.size();
+	//std::sort(tasks.begin(), tasks.end(), Task::due_date_is_earlier);
 	
-	for(decltype(tasks.size()) i = 0; i < task_count; ++i)
-		this->add_bar(tasks[i], task_count, i);	
+	for(std::size_t i = 0; i < taskgroup_count; ++i)
+		this->add_bar(task_groups[i], taskgroup_count, i);	
 
-	this->unsaved_changes_made_to_tasks = false;	*/
+	this->unsaved_changes_made_to_tasks = false;
 }
 
 

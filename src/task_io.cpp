@@ -184,20 +184,23 @@ std::string int_to_2char(const unsigned num){
 	else return num_str;
 }
 
-void overwrite_taskfile(const std::vector<Task>& tasks){
+void overwrite_taskfile(const std::vector<TaskGroup>& taskgroups){
 	std::string buffer; 
 	buffer.reserve(400);
 	
-	for(const Task& task : tasks){
-		buffer += task_to_str(task) + '\n';
+	for(const TaskGroup& taskgroup : taskgroups){
+		if(taskgroup.tasks.size() == 1){
+			buffer += task_to_str(taskgroup.tasks[0]) + '\n';
+		}
+		else{
+			buffer += taskgroup.group_name + "{\n";
+			for(const Task& task : taskgroup.tasks){
+				buffer += task_to_str(task) + '\n';
+			}
+			buffer += "}\n";
+		}
 	}
 	
-	//remove last trailing \n
-	if(buffer.size() != 0){
-		buffer.erase(buffer.end() - 1);
-	}
-	buffer.shrink_to_fit();
-		
 	const int resave_requested = 0;
 	int user_decision = resave_requested;
 	do{
