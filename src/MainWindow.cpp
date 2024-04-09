@@ -76,6 +76,8 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->zoomout_button.box(FL_FLAT_BOX);
 	this->zoomin_button.box(FL_FLAT_BOX);	
 	
+	this->taskgroup_button.deactivate();
+	
 	this->end();
 	this->add(this->bar_group);
 	this->add(this->new_task_button);
@@ -105,7 +107,14 @@ void MainWindow::modify_task(const char* const task_name, const std::chrono::yea
 }
 
 void MainWindow::show_taskgroups(){
+	this->taskgroup_button.deactivate();
+	this->taskgroup_button.redraw();
 	this->bar_group.show_taskgroups();
+}
+
+void MainWindow::enable_taskgroup_button(){
+	this->taskgroup_button.activate();
+	this->taskgroup_button.redraw();	
 }
 
 void MainWindow::show_window_for_creating_new_task(){

@@ -183,6 +183,7 @@ void BarGroup::display_tasks_in_task_group(const Bar* const bar){
 		this->add_bar({task.name(), {task}}, task_count, i);
 	}
 	
+	((MainWindow*)(this->parent()))->enable_taskgroup_button();
 	this->redraw();
 }
 

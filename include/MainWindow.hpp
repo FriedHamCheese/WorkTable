@@ -27,6 +27,8 @@ class MainWindow : public Fl_Window{
 
 	void zoomin_timescale();
 	void zoomout_timescale();	
+	
+	void enable_taskgroup_button();
 
 	static void new_task_button_callback(Fl_Widget* const self_ptr, void* const data);
 	static void save_button_callback(Fl_Widget* const self_ptr, void* const data);
