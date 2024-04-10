@@ -29,6 +29,8 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
 	this->task_group.group_name = task_name;
+	this->task_group.tasks[0].name(task_name);	
+	this->task_group.tasks[0].due_date(due_date);
 	
 	this->update_label();
 	

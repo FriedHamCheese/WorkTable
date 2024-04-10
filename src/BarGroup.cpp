@@ -128,6 +128,10 @@ void BarGroup::load_tasks_to_bars(){
 
 void BarGroup::add_task(const Task& task){
 	this->add_bar(task);
+	if(this->task_group_id != -1){
+		this->paged_taskgroups[this->task_group_id].tasks.push_back(task);
+	}
+	
 	this->unsaved_changes_made_to_tasks = true;
 	this->redraw();
 }
@@ -135,6 +139,10 @@ void BarGroup::add_task(const Task& task){
 bool BarGroup::delete_task(const int item_index){
 	try{
 		this->remove(this->bars.at(item_index).get());
+		if(this->task_group_id != -1){
+			this->paged_taskgroups[this->task_group_id].tasks.erase(this->paged_taskgroups[this->task_group_id].tasks.begin() + item_index);
+		}
+		
 	}catch(const std::out_of_range& invalid_item_index) {return false;}
 	
 	this->bars.erase(this->bars.begin() + item_index);
@@ -149,7 +157,12 @@ void BarGroup::modify_task(const char* const task_name, const std::chrono::year_
 	if(std::abs(item_index) >= bars.size()) 
 		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
 
-	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());
+	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());		
+	
+	if(this->task_group_id != -1){
+		this->paged_taskgroups[task_group_id].tasks[item_index] = bars[item_index]->get_single_task();
+	}
+
 	this->unsaved_changes_made_to_tasks = true;
 	this->redraw();
 }
@@ -205,12 +218,15 @@ void BarGroup::show_taskgroups(){
 void BarGroup::save_tasks_to_file(){
 	//std::sort(this->bars.begin(), this->bars.end(), BarGroup::bar_due_date_is_earlier);
 	//this->redraw();
-
 	std::vector<TaskGroup> taskgroups;
-	taskgroups.reserve(this->bars.size());
 	
-	for(const std::unique_ptr<Bar>& bar : this->bars)
-		taskgroups.emplace_back(bar->get_taskgroup());	
+	if(this->task_group_id != -1){
+		taskgroups = this->paged_taskgroups;
+	}else{
+		taskgroups.reserve(this->bars.size());
+		for(const std::unique_ptr<Bar>& bar : this->bars)
+			taskgroups.emplace_back(bar->get_taskgroup());	
+	}
 	
 	overwrite_taskfile(taskgroups);
 	this->unsaved_changes_made_to_tasks = false;
@@ -308,7 +324,7 @@ void BarGroup::add_bar(const Task& task){
 	const auto incremented_item_index = incremented_bar_count - 1;
 	
 	try{
-		//this->add_bar(task, incremented_bar_count, incremented_item_index);
+		this->add_bar({task.name(), {task}}, incremented_bar_count, incremented_item_index);
 	}
 	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
 	catch(const std::length_error& exceeded_max_alloc) {throw exceeded_max_alloc;}
