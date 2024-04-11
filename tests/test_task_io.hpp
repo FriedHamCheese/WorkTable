@@ -8,6 +8,14 @@
 #include <iostream>
 
 namespace test_task_io_internal{
+	static int _test_nested_group_warning_count = 0;
+	constexpr static int _test_expected_nested_group_warning_count = 2;
+	
+	inline void _test_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
+										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name)
+	{_test_nested_group_warning_count++;}	
+	
+	
 	inline void test_lines_to_TaskStrGroup(){
 		const std::vector<task_io_internal::TaskStrGroup> expected_result{
 			{"", {{"2025/05/03", "cookies"}}},
@@ -16,9 +24,10 @@ namespace test_task_io_internal{
 			{"", {{"2025/05/01", "fries"}}},
 		};
 		
-		const task_io_internal::file_buffer file_buffer = task_io_internal::get_raw_file("./tests/grouping_test.txt");
+		const task_io_internal::file_buffer file_buffer = task_io_internal::get_raw_file("./tests/nested_grouping_test.txt");
 		const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(file_buffer);
-		const std::vector<task_io_internal::TaskStrGroup> TaskStrGroup_vector = task_io_internal::lines_to_TaskStrGroup(lines);
+		const std::vector<task_io_internal::TaskStrGroup> TaskStrGroup_vector = task_io_internal::lines_to_TaskStrGroup(lines, _test_nested_group_callback);
+		assert(_test_nested_group_warning_count == _test_expected_nested_group_warning_count);
 		
 		const size_t TaskStrGroup_count = TaskStrGroup_vector.size();
 		for(std::size_t taskstr_group_i = 0; taskstr_group_i < TaskStrGroup_count; taskstr_group_i++){
@@ -68,6 +77,7 @@ namespace test_task_io_internal{
 		}
 	}
 }
+
 
 inline void test_suite_task_io(){
 	test_task_io_internal::test_lines_to_TaskStrGroup();

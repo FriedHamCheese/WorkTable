@@ -25,7 +25,6 @@ all: build build_test
 
 .PHONY: build
 build: $(EXECFILE)
-	$(EXECFILE)
 
 .PHONY: path_debug
 path_debug:
@@ -55,8 +54,13 @@ path_debug:
 	@echo TEST_OBJFILES: $(TEST_OBJFILES)
 
 .PHONY: build_test
-build_test: $(TEST_EXECFILE)
+build_test: display_building_test $(TEST_EXECFILE)
 	$(TEST_EXECFILE)
+
+.PHONY: display_building_test
+display_building_test:
+	@echo
+	@echo Building tests...
 
 $(EXECFILE): $(OBJFILES)
 	$(CXX) $(OBJFILES) $(LDFLAGS) -o $@
@@ -78,6 +82,13 @@ $(TEST_DIR)/test_main.o: $(TEST_DIR)/test_main.cpp $(TEST_HEADERFILES) Makefile 
 $(TEST_DIR):
 	mkdir $@
 
+.PHONY: clean_test
+clean_test:
+	rm -rf test_main.o
+	rm -rf $(TEST_EXECFILE)
+
 .PHONY: clean
-clean:
+clean: clean_test
 	rm -rf $(BINDIR)
+	
+	

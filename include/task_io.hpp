@@ -28,12 +28,16 @@ namespace task_io_internal{
 	
 	file_buffer get_raw_file(const std::string& filename);
 
+	void default_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
+										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name);
+	
 	std::vector<std::string> buffer_to_separated_lines(const file_buffer& buffer);
-	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines);
+	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
+													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&) = default_nested_group_callback);
 	std::vector<TaskGroup> TaskStrGroups_to_TaskGroups(const std::vector<TaskStrGroup>& taskstr_groups);
 }
 
-std::vector<TaskGroup> get_tasks();
+std::vector<TaskGroup> get_tasks(void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&) = task_io_internal::default_nested_group_callback);
 
 std::string int_to_2char(const unsigned num);
 void overwrite_taskfile(const std::vector<TaskGroup>& taskgroups);

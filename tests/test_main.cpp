@@ -7,6 +7,6 @@ int main(){
 	
 	test_suite_task_io();
 	
-	std::clog << "[ALL CLEAR]: all tests verified.";
+	std::clog << "[ALL CLEAR]: all tests verified.\n";
 	return 0;
 }

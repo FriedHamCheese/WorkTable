@@ -29,11 +29,11 @@ class Bar : public Fl_Button{
 	
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
-	std::chrono::year_month_day get_due_date() const;
+	
+	bool is_single_task() const {return this->task_group.tasks.size() == 1;}
 	Task get_single_task() const {return this->task_group.tasks[0];}
 	TaskGroup get_taskgroup() const {return this->task_group;}
-	bool is_single_task() const {return this->task_group.tasks.size() == 1;}
-
+	
 	static int calc_height(const int height_with_yspacing) noexcept;
 	static int calc_height(const int timeline_height, const int task_count) noexcept;
 	static int calc_height_with_yspacing(const int timeline_height, const int task_count) noexcept;
@@ -42,9 +42,7 @@ class Bar : public Fl_Button{
 	static int calc_bar_width(const std::chrono::days& days_remaining, const std::chrono::days& days_from_interval) noexcept;
 		
 	static void bar_callback(Fl_Widget* const self, void* const data);
-	
-	static bool due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept;
-	
+		
 	protected:
 	void draw() override;
 

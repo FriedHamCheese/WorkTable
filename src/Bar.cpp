@@ -51,10 +51,6 @@ void Bar::update_width(const std::chrono::days& days_from_interval, const int pa
 	*/
 }
 
-std::chrono::year_month_day Bar::get_due_date() const{
-	//return task_group.due_date();
-}
-
 
 //static public
 int Bar::calc_height(const int height_with_yspacing) noexcept{
@@ -106,15 +102,11 @@ void Bar::bar_callback(Fl_Widget* const self, void* const data){
 	}
 }
 
-bool Bar::due_date_is_earlier(const Bar* const lhs, const Bar* const rhs) noexcept{
-	return lhs->get_due_date() < rhs->get_due_date();
-}
-
 
 //private
 void Bar::update_label(){
 	std::string label;
-		//[Task name] ([days] days)
+		//[Task[0] name] ([days] days)
 	if(this->is_single_task()) 
 		label = task_group.tasks[0].name() + " (" + std::to_string(task_group.tasks[0].days_remaining().count()) + " days)";
 	else

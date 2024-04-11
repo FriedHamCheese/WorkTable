@@ -70,9 +70,16 @@ namespace task_io_internal{
 		return lines;
 	}
 	
-	
+	void default_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
+										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name)
+		{
+		const std::string msg = std::string(callsite_filename) + ":" + std::to_string(callsite_line) + ": Detected nested task group " + second_taskgroup_name + ". Tasks will be in  " + first_taskgroup_name + ".";
+		fl_alert(msg.c_str());
+	}
 
-	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines){
+	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
+													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&))
+	{
 		std::vector<TaskStrGroup> task_str_groups; 
 		task_str_groups.reserve(20);
 		
@@ -85,8 +92,8 @@ namespace task_io_internal{
 			
 			const bool nested_group = (line.back() == '{') && fetching_group;
 			if(nested_group){
-				const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Detected nested task groups, ignoring the latter.";
-				fl_alert(msg.c_str());	
+				const std::string nested_group_name = line.substr(0, line.size() - 1);;
+				nested_group_callback(__FILE__, __LINE__, fetching_taskstr_group.group_name, nested_group_name);
 				continue;
 			}
 			if(line.back() == '{'){
@@ -149,7 +156,7 @@ namespace task_io_internal{
 					fetching_taskgroup.tasks.emplace_back(due_date, current_taskstr.name, current_date);
 				}
 				catch(std::invalid_argument& invalid_ymd){
-					const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Task skipped due to invalid due date.";
+					const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Task " + current_taskstr.name + " due to invalid due date.";
 					fl_alert(msg.c_str());
 				}
 			}
@@ -161,7 +168,7 @@ namespace task_io_internal{
 	}
 }
 
-std::vector<TaskGroup> get_tasks(){
+std::vector<TaskGroup> get_tasks(void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&)){
 	task_io_internal::file_buffer raw_file_data;
 	try{
 		raw_file_data = task_io_internal::get_raw_file("tasks.txt");
@@ -170,7 +177,7 @@ std::vector<TaskGroup> get_tasks(){
 	catch(const std::runtime_error& file_not_opened) {throw;}
 
 	const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(raw_file_data);
-	const std::vector<task_io_internal::TaskStrGroup> taskstr_groups = task_io_internal::lines_to_TaskStrGroup(lines);
+	const std::vector<task_io_internal::TaskStrGroup> taskstr_groups = task_io_internal::lines_to_TaskStrGroup(lines, nested_group_callback);
 
 	return task_io_internal::TaskStrGroups_to_TaskGroups(taskstr_groups);
 }

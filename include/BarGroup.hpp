@@ -65,6 +65,9 @@ class BarGroup : public Fl_Group{
 	
 	std::vector<std::unique_ptr<Bar>> bars;
 	std::vector<TaskGroup> paged_taskgroups;
+	std::int_least64_t task_group_id;
+	static constexpr const std::int_least64_t not_in_any_group = -1;
+	
 	Fl_Box current_date_label;
 	Fl_Box interval_date_label;
 	
@@ -74,10 +77,7 @@ class BarGroup : public Fl_Group{
 	std::chrono::year_month_day next_interval;
 
 	bool unsaved_changes_made_to_tasks;
-	std::int_least64_t task_group_id;
-	
-	static bool bar_due_date_is_earlier(const std::unique_ptr<Bar>& lhs, const std::unique_ptr<Bar>& rhs);
-	
+		
 	static constexpr int date_label_yraise = 20;
 	static constexpr int date_label_width = 70;
 	static constexpr int date_label_height = 15;

@@ -78,6 +78,8 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	
 	this->taskgroup_button.deactivate();
 	
+	this->task_properties_window.set_modal();		
+	
 	this->end();
 	this->add(this->bar_group);
 	this->add(this->new_task_button);
@@ -124,7 +126,6 @@ void MainWindow::show_window_for_creating_new_task(){
 
 void MainWindow::show_window_for_editing_task(const Task& task_properties, const int item_index){
 	this->task_properties_window.store_task(task_properties, item_index);
-	this->task_properties_window.set_modal();	
 	this->task_properties_window.show();
 }
 
