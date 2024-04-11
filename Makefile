@@ -24,7 +24,16 @@ LDFLAGS := $(FLTK_LDFLAGS)
 all: build build_test
 
 .PHONY: build
-build: $(EXECFILE)
+build: display_build_header $(EXECFILE)
+
+.PHONY: display_build_header
+display_build_header:
+	@echo
+	@echo [Building]...
+	@echo CXX: $(CXX)
+	@echo CXXFLAGS: [$(CXXFLAGS)]
+	@echo $(SRCDIR)/.cpp to $(OBJDIR)/.o
+	@echo
 
 .PHONY: path_debug
 path_debug:
@@ -53,30 +62,34 @@ path_debug:
 	@echo TEST_HEADERFILES: $(TEST_HEADERFILES)
 	@echo TEST_OBJFILES: $(TEST_OBJFILES)
 
-.PHONY: build_test
-build_test: display_building_test $(TEST_EXECFILE)
-	$(TEST_EXECFILE)
-
-.PHONY: display_building_test
-display_building_test:
-	@echo
-	@echo Building tests...
-
 $(EXECFILE): $(OBJFILES)
+	@echo
+	@echo [Linking]...
 	$(CXX) $(OBJFILES) $(LDFLAGS) -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERFILES) Makefile | $(OBJDIR)
-	$(CXX) -c $< $(CXXFLAGS) -o $@
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERFILES) | $(OBJDIR)
+	@echo Compiling $<...
+	@$(CXX) -c $< $(CXXFLAGS) -o $@
 	
 
 $(OBJDIR):
 	mkdir $@
 
 
+.PHONY: build_test
+build_test: display_building_test $(TEST_EXECFILE)
+	@echo
+	$(TEST_EXECFILE)
+
+.PHONY: display_building_test
+display_building_test:
+	@echo
+	@echo [Building tests]...
+
 $(TEST_EXECFILE): $(TEST_DIR)/test_main.o $(TEST_OBJFILES)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-$(TEST_DIR)/test_main.o: $(TEST_DIR)/test_main.cpp $(TEST_HEADERFILES) Makefile | $(TEST_DIR)
+$(TEST_DIR)/test_main.o: $(TEST_DIR)/test_main.cpp $(TEST_HEADERFILES) | $(TEST_DIR)
 	$(CXX) -c $< $(CXXFLAGS) -o $@
 
 $(TEST_DIR):
@@ -84,7 +97,7 @@ $(TEST_DIR):
 
 .PHONY: clean_test
 clean_test:
-	rm -rf test_main.o
+	rm -rf $(TEST_DIR)/test_main.o
 	rm -rf $(TEST_EXECFILE)
 
 .PHONY: clean
