@@ -370,6 +370,7 @@ Timescale BarGroup::change_timescale(const Timescale timescale){
 	for(std::unique_ptr<Bar>& bar : bars)
 		bar->update_width(get_days_from_interval(), this->x());
 	
+	this->redraw();
 	return timescale;
 }
 

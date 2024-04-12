@@ -25,7 +25,7 @@ class Bar_TaskGroup : public TaskGroup{
 class Bar : public Fl_Button{
 	public:
 	Bar(const BarConstructorArgs& args);
-	Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group);
+	Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group, const std::chrono::days& days_from_interval);
 	
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
@@ -48,6 +48,7 @@ class Bar : public Fl_Button{
 
 	private:
 	Bar_TaskGroup task_group;
+	std::chrono::days days_from_interval;
 	
 	void update_label();
 	void update_color_from_days_remaining() noexcept;
@@ -67,6 +68,7 @@ struct BarConstructorArgs{
 	int ypos;
 	int width;
 	int height;
+	std::chrono::days days_from_interval;
 	Bar_TaskGroup task_group;
 };
 

@@ -11,13 +11,14 @@
 #include <iostream>
 
 Bar::Bar(const BarConstructorArgs& args)
-:	Bar(args.xpos, args.ypos, args.width, args.height, args.task_group)
+:	Bar(args.xpos, args.ypos, args.width, args.height, args.task_group, args.days_from_interval)
 {
 }
 
-Bar::Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group)
+Bar::Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group, const std::chrono::days& days_from_interval)
 :	Fl_Button(xpos, ypos, width, height),
-	task_group(task_group)
+	task_group(task_group),
+	days_from_interval(days_from_interval)
 {
 	this->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);			
 	this->update_color_from_days_remaining();
@@ -39,16 +40,18 @@ void Bar::update_task(const char* const task_name, const std::chrono::year_month
 }
 
 void Bar::update_width(const std::chrono::days& days_from_interval, const int parent_xpos){
-	/*
-	const bool move_to_overdue_position = this->task_group.days_remaining().count() < 1;
+	const int bar_width = Bar::calc_bar_width(this->task_group.furthest_due_date_task().days_remaining(), days_from_interval);
+	this->days_from_interval = days_from_interval;
 	
-	if(!move_to_overdue_position){
-		const int bar_width = Bar::calc_bar_width(this->task_group.days_remaining(), days_from_interval);
-		this->resize(parent_xpos + BarGroup::bar_xoffset, this->y(), bar_width, this->h());
-	}else{
+	const bool use_overdue_position = this->task_group.nearest_due_date_task().days_remaining().count() < 1;
+	const bool all_tasks_are_overdue = bar_width <= 0;
+	
+	if(use_overdue_position && all_tasks_are_overdue)
 		this->resize(parent_xpos, this->y(), BarGroup::bar_xoffset, this->h());
-	}
-	*/
+	else if(use_overdue_position && !all_tasks_are_overdue)
+		this->resize(parent_xpos, this->y(), bar_width + BarGroup::bar_xoffset, this->h());
+	else
+		this->resize(parent_xpos + BarGroup::bar_xoffset, this->y(), bar_width, this->h());
 }
 
 
@@ -120,12 +123,27 @@ void Bar::update_color_from_days_remaining() noexcept{
 	this->redraw();
 }
 
-void Bar::draw(){	
-	for(std::int_least64_t i = this->task_group.tasks.size()-1; i >= 0; i--){
-		const Task& task = this->task_group.tasks[i];
-		const float of_furthest_due_date = float(task.days_remaining().count()) / float(this->task_group.furthest_due_date_task().days_remaining().count());
-		const float width = float(this->w()) * of_furthest_due_date;
-		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width, this->h(), get_bar_color(task.days_remaining().count()));
+void Bar::draw(){
+	const bool use_overdue_position = this->task_group.nearest_due_date_task().days_remaining().count() < 1;
+	const bool all_tasks_are_overdue = this->task_group.furthest_due_date_task().days_remaining().count() < 1;
+	if(use_overdue_position && all_tasks_are_overdue){
+		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), BarGroup::bar_xoffset, this->h(), get_bar_color(this->task_group.tasks[0].days_remaining().count()));
+	}	
+	else if(use_overdue_position && !all_tasks_are_overdue){
+		for(std::int_least64_t i = this->task_group.tasks.size()-1; i >= 0; i--){
+			const Task& task = this->task_group.tasks[i];
+			const float of_days_from_interval = std::clamp(float(task.days_remaining().count()) / float(this->days_from_interval.count()), 0.0f, 1.0f);
+			const float width = float(BarGroup::bar_max_width) * of_days_from_interval;
+			fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width + BarGroup::bar_xoffset, this->h(), get_bar_color(task.days_remaining().count()));
+		}
+	}
+	else{
+		for(std::int_least64_t i = this->task_group.tasks.size()-1; i >= 0; i--){
+			const Task& task = this->task_group.tasks[i];
+			const float of_days_from_interval = std::clamp(float(task.days_remaining().count()) / float(this->days_from_interval.count()), 0.0f, 1.0f);
+			const float width = float(BarGroup::bar_max_width) * of_days_from_interval;
+			fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width, this->h(), get_bar_color(task.days_remaining().count()));
+		}
 	}
 	Fl_Button::draw();
 }
@@ -135,11 +153,15 @@ BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskG
 										const int task_count, const int item_index)
 :	task_group(task_group)
 {
-	const bool use_overdue_position = this->task_group.furthest_due_date_task().days_remaining().count() < 1;
+	const bool use_overdue_position = this->task_group.nearest_due_date_task().days_remaining().count() < 1;
 	
 	if(use_overdue_position){
 		xpos = parent->x();
-		width = BarGroup::bar_xoffset;
+		if(this->task_group.furthest_due_date_task().days_remaining().count() > 0){
+			width = BarGroup::bar_xoffset + Bar::calc_bar_width(this->task_group.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
+		}else{
+			width = BarGroup::bar_xoffset;
+		}
 	}else{
 		xpos = parent->x() + BarGroup::bar_xoffset;
 		width = Bar::calc_bar_width(this->task_group.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
@@ -149,6 +171,7 @@ BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskG
 	ypos = Bar::calc_ypos(parent->y(), bar_height_with_yspacing, item_index);
 	
 	height = Bar::calc_height(bar_height_with_yspacing);
+	this->days_from_interval = parent->get_days_from_interval();
 }
 
 
