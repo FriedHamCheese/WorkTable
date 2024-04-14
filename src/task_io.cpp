@@ -69,65 +69,106 @@ namespace task_io_internal{
 		lines.shrink_to_fit();
 		return lines;
 	}
-
-	std::vector<TaskStr> lines_to_taskstrs(const std::vector<std::string>& lines){
-		std::vector<TaskStr> tasks_str; 
-		
-		tasks_str.reserve(20);
-		
-		for(const std::string& line : lines){
-			std::string date_str; date_str.reserve(10);
-			std::string name_str; name_str.reserve(20);
-			
-			const auto line_length = line.size();
-			auto date_str_end_index = line_length; //default
-			
-			for(decltype(line.size()) i = 0; i < line_length; ++i){
-				if(line[i] == ','){
-					date_str_end_index = i;
-					break;
-				}
-				else date_str += line[i];
-			}
-					
-			//+2 for skipping comma and space
-			for(auto i = date_str_end_index+2; i < line_length; ++i){
-				name_str += line[i];
-			}
-			
-			tasks_str.emplace_back(date_str, name_str);
-		}
-
-		tasks_str.shrink_to_fit();
-		return tasks_str;
+	
+	void default_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
+										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name)
+		{
+		const std::string msg = std::string(callsite_filename) + ":" + std::to_string(callsite_line) + ": Detected nested task group " + second_taskgroup_name + ". Tasks will be in  " + first_taskgroup_name + ".";
+		fl_alert(msg.c_str());
 	}
 
-	std::vector<Task> taskstrs_to_tasks(const std::vector<TaskStr>& taskstrs){
-		std::vector<Task> tasks; 
+	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
+													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&))
+	{
+		std::vector<TaskStrGroup> task_str_groups; 
+		task_str_groups.reserve(20);
 		
-		tasks.reserve(taskstrs.size());
+		TaskStrGroup fetching_taskstr_group;		
 		
-		const std::chrono::year_month_day current_ymd = get_current_ymd();
-		
-		for(const TaskStr& task_str : taskstrs){
-			try{
-				const std::chrono::year_month_day task_ymd = str_to_ymd(task_str.due_date);		
-				tasks.emplace_back(task_ymd, task_str.name, current_ymd);
+		bool fetching_group = false;
+		const std::size_t line_count = lines.size();
+		for(std::size_t line_i = 0; line_i < line_count; line_i++){
+			const std::string& line = lines[line_i];
+			
+			const bool nested_group = (line.back() == '{') && fetching_group;
+			if(nested_group){
+				const std::string nested_group_name = line.substr(0, line.size() - 1);;
+				nested_group_callback(__FILE__, __LINE__, fetching_taskstr_group.group_name, nested_group_name);
+				continue;
 			}
-			catch(const std::invalid_argument& invalid_ymd){
-				//[name] ... (date).
-				//...
-				const std::string msg = task_str.name + " not loaded due to invalid due date" + " (" + task_str.due_date + ")."
-										+ "\n(task_io.cpp: taskstrs_to_tasks())";
-				fl_alert(msg.c_str());
+			if(line.back() == '{'){
+				fetching_group = true;
+				fetching_taskstr_group.group_name = line.substr(0, line.size() - 1);
+				continue;
+			}
+
+			if(line == "}") fetching_group = false;
+			else{
+				std::string date_str; date_str.reserve(10);
+				std::string name_str; name_str.reserve(20);
+				
+				const auto line_length = line.size();
+				auto date_str_end_index = line_length; //default
+				
+				for(decltype(line.size()) i = 0; i < line_length; ++i){
+					if(line[i] == ','){
+						date_str_end_index = i;
+						break;
+					}
+					else date_str += line[i];
+				}
+				
+				name_str += line.substr(date_str_end_index+2, line_length);				
+				fetching_taskstr_group.taskstrs.emplace_back(date_str, name_str);
+			}
+			
+			const bool last_line = line_i + 1 == line_count;
+			if(!fetching_group || last_line){
+				if(fetching_taskstr_group.taskstrs.size() > 0){
+					task_str_groups.push_back(fetching_taskstr_group);
+					fetching_taskstr_group.taskstrs.clear();
+					fetching_taskstr_group.group_name.clear();
+				}
 			}
 		}
+
+		task_str_groups.shrink_to_fit();
+		return task_str_groups;
+	}
+	
+	std::vector<TaskGroup> TaskStrGroups_to_TaskGroups(const std::vector<TaskStrGroup>& taskstr_groups){
+		std::vector<TaskGroup> taskgroups; 
+		taskgroups.reserve(taskstr_groups.size());
 		
-		return tasks;
+		const std::chrono::year_month_day current_date = get_current_ymd();
+		const std::size_t taskgroup_count = taskstr_groups.size();
+		
+		for(std::size_t taskgroup_i = 0; taskgroup_i < taskgroup_count; taskgroup_i++){
+			TaskGroup fetching_taskgroup;
+			const TaskStrGroup& current_taskstr_group = taskstr_groups[taskgroup_i];
+			fetching_taskgroup.group_name = current_taskstr_group.group_name;
+			
+			const std::size_t task_count = current_taskstr_group.taskstrs.size();
+			for(std::size_t task_i = 0; task_i < task_count; task_i++){
+				const TaskStr& current_taskstr = current_taskstr_group.taskstrs[task_i];
+				try{
+					const std::chrono::year_month_day due_date = str_to_ymd(current_taskstr.due_date);
+					fetching_taskgroup.tasks.emplace_back(due_date, current_taskstr.name, current_date);
+				}
+				catch(std::invalid_argument& invalid_ymd){
+					const std::string msg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": Task " + current_taskstr.name + " due to invalid due date.";
+					fl_alert(msg.c_str());
+				}
+			}
+			
+			taskgroups.push_back(fetching_taskgroup);
+		}
+
+		return taskgroups;
 	}
 }
 
-std::vector<Task> get_tasks(){
+std::vector<TaskGroup> get_tasks(void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&)){
 	task_io_internal::file_buffer raw_file_data;
 	try{
 		raw_file_data = task_io_internal::get_raw_file("tasks.txt");
@@ -136,11 +177,11 @@ std::vector<Task> get_tasks(){
 	catch(const std::runtime_error& file_not_opened) {throw;}
 
 	const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(raw_file_data);
-	const std::vector<task_io_internal::TaskStr> taskstrs = task_io_internal::lines_to_taskstrs(lines);
+	const std::vector<task_io_internal::TaskStrGroup> taskstr_groups = task_io_internal::lines_to_TaskStrGroup(lines, nested_group_callback);
 
-	const std::vector<Task> tasks = task_io_internal::taskstrs_to_tasks(taskstrs);
-	return tasks;
+	return task_io_internal::TaskStrGroups_to_TaskGroups(taskstr_groups);
 }
+
 
 //returns string version of number with always 2 digits.
 std::string int_to_2char(const unsigned num){
@@ -150,20 +191,23 @@ std::string int_to_2char(const unsigned num){
 	else return num_str;
 }
 
-void overwrite_taskfile(const std::vector<Task>& tasks){
+void overwrite_taskfile(const std::vector<TaskGroup>& taskgroups){
 	std::string buffer; 
 	buffer.reserve(400);
 	
-	for(const Task& task : tasks){
-		buffer += task_to_str(task) + '\n';
+	for(const TaskGroup& taskgroup : taskgroups){
+		if(taskgroup.tasks.size() == 1){
+			buffer += task_to_str(taskgroup.tasks[0]) + '\n';
+		}
+		else{
+			buffer += taskgroup.group_name + "{\n";
+			for(const Task& task : taskgroup.tasks){
+				buffer += task_to_str(task) + '\n';
+			}
+			buffer += "}\n";
+		}
 	}
 	
-	//remove last trailing \n
-	if(buffer.size() != 0){
-		buffer.erase(buffer.end() - 1);
-	}
-	buffer.shrink_to_fit();
-		
 	const int resave_requested = 0;
 	int user_decision = resave_requested;
 	do{

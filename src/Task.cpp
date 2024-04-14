@@ -41,3 +41,7 @@ bool Task::due_date_is_earlier(const Task& lhs, const Task& rhs) noexcept{
 	return lhs.due_date() < rhs.due_date();
 }
 
+bool Task::due_date_is_later(const Task& lhs, const Task& rhs) noexcept{
+	return lhs.due_date() > rhs.due_date();
+}
+
