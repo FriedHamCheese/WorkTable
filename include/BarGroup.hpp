@@ -31,6 +31,7 @@ class BarGroup : public Fl_Group{
 	void save_tasks_to_file();
 	void revert_to_tasks_from_file();
 	
+	void handle_drag_event(const Bar* const clicked_bar);
 	
 	std::chrono::days get_days_from_interval() const;
 	

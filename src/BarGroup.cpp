@@ -22,6 +22,7 @@
 #include <string>
 #include <cstdint>
 #include <stdexcept>
+#include <iostream>
 #include <algorithm>
 
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
@@ -248,6 +249,24 @@ void BarGroup::revert_to_tasks_from_file(){
 		this->add_bar(task_groups[i], taskgroup_count, i);	
 
 	this->unsaved_changes_made_to_tasks = false;
+}
+
+
+void BarGroup::handle_drag_event(const Bar* const clicked_bar){
+	for(const std::unique_ptr<Bar>& bar : bars){
+		if(Fl::event_inside(bar.get())){
+			bar->merge_taskgroup(clicked_bar->get_taskgroup());
+			const int clicked_bar_index  = this->get_item_index(clicked_bar);
+			if(clicked_bar_index == -1){
+				const std::string msg = std::string(__FILE__) + ':' + std::to_string(__LINE__) + ": Attempting to delete a non-member bar.";
+				fl_alert(msg.c_str());
+			}else{
+				this->delete_task(clicked_bar_index);
+			}
+			this->redraw();
+			return;
+		}
+	}
 }
 
 

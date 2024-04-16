@@ -23,9 +23,15 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 	this->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);			
 	this->update_color_from_days_remaining();
 	this->box(FL_NO_BOX);
-	this->callback(Bar::bar_callback);
 	
 	this->update_label();
+}
+
+void Bar::merge_taskgroup(const TaskGroup& other_taskgroup){
+	const bool has_no_taskgroup_name = this->is_single_task();
+	if(has_no_taskgroup_name) this->task_group.group_name = this->task_group.tasks[0].name();
+	this->task_group.merge_taskgroup(other_taskgroup);
+	this->update_width(this->days_from_interval, (this->parent())->x());
 }
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
@@ -35,6 +41,7 @@ void Bar::update_task(const char* const task_name, const std::chrono::year_month
 	
 	this->update_label();
 	
+	this->task_group.sort_and_reassign();
 	this->update_width(days_from_interval, parent_xpos);	
 	this->update_color_from_days_remaining();	
 }
@@ -82,12 +89,12 @@ int Bar::calc_bar_width(const std::chrono::days& days_remaining, const std::chro
 	return std::clamp(int(width), 0, BarGroup::bar_max_width);
 }
 
-void Bar::bar_callback(Fl_Widget* const self, void* const data){
+void Bar::left_mouse_click_callback(){
 	try{
-		if(((Bar*)(self))->is_single_task())
-			((BarGroup*)(self->parent()))->request_window_for_editing_task((Bar*)(self));
+		if(this->is_single_task())
+			((BarGroup*)(this->parent()))->request_window_for_editing_task(this);
 		else{
-			((BarGroup*)(self->parent()))->display_tasks_in_task_group((Bar*)(self));
+			((BarGroup*)(this->parent()))->display_tasks_in_task_group(this);
 		}
 	}
 	catch(const std::bad_alloc& alloc_err){
@@ -102,6 +109,41 @@ void Bar::bar_callback(Fl_Widget* const self, void* const data){
 	}
 	catch(...){
 		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
+	}	
+}
+
+void Bar::right_mouse_click_callback(){
+	
+}
+
+int Bar::handle(const int event){
+	constexpr int handled_event = 1;
+
+	switch(event){
+		case FL_PUSH:{
+			return handled_event;
+		}
+		case FL_RELEASE:{
+			const bool clicked_and_released_same_button = Fl::event_inside(this) != 0;
+			const int clicked_button = Fl::event_button();
+			if(clicked_and_released_same_button){
+				if(clicked_button == FL_LEFT_MOUSE)
+					left_mouse_click_callback();
+				if(clicked_button == FL_RIGHT_MOUSE)
+					right_mouse_click_callback();
+			}else{
+				//the user dragged the mouse to other widget and releases the mouse button hold, pass this up.				
+				((BarGroup*)(this->parent()))->handle_drag_event(this);
+				//this widget may be deleted after the handle_drag_event, so no further access to the object.
+			}
+			//return is fine, it's on stack, not accessing the object.
+			return handled_event;
+		}		
+		case FL_DRAG:{
+			return handled_event;
+		}		
+		default:
+			return Fl_Button::handle(event);
 	}
 }
 
@@ -196,7 +238,36 @@ Fl_Color get_bar_color(const int days_until_deadline) noexcept{
 Bar_TaskGroup::Bar_TaskGroup(const TaskGroup& task_group)
 :	TaskGroup(task_group)
 {
+	this->sort_and_reassign();
+}
+
+void Bar_TaskGroup::sort_and_reassign(){
 	std::sort(this->tasks.begin(), this->tasks.end(), Task::due_date_is_earlier);
 	this->_nearest_due_date_task = this->tasks.front();
-	this->_furthest_due_date_task = this->tasks.back();
+	this->_furthest_due_date_task = this->tasks.back();	
+}
+
+void Bar_TaskGroup::add_task(const Task& task){
+	this->tasks.push_back(task);
+	this->sort_and_reassign();
+}
+
+void Bar_TaskGroup::merge_taskgroup(const TaskGroup& other){
+	this->tasks.reserve(this->tasks.size() + other.tasks.size());
+	for(const Task& task : other.tasks){
+		this->tasks.push_back(task);
+	}
+	this->sort_and_reassign();
+}
+
+void Bar_TaskGroup::delete_task_at(const std::size_t index){
+	const bool is_nearest_due_date_task = index == 0;
+	const bool is_furthest_due_date_task = index == this->tasks.size();
+	
+	if(is_nearest_due_date_task)
+		this->_nearest_due_date_task = this->tasks[1];
+	if(is_furthest_due_date_task)
+		this->_nearest_due_date_task = this->tasks[this->tasks.size() - 1];
+	
+	this->tasks.erase(this->tasks.begin() + index);
 }

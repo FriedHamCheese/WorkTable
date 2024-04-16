@@ -20,12 +20,20 @@ class Bar_TaskGroup : public TaskGroup{
 	Bar_TaskGroup(const TaskGroup& task_group);
 	const Task& nearest_due_date_task() const {return _nearest_due_date_task;}
 	const Task& furthest_due_date_task() const {return _furthest_due_date_task;}
+	
+	void add_task(const Task& task);
+	void merge_taskgroup(const TaskGroup& other);
+	void delete_task_at(const std::size_t index);
+	
+	void sort_and_reassign();
 };
 
 class Bar : public Fl_Button{
 	public:
 	Bar(const BarConstructorArgs& args);
 	Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group, const std::chrono::days& days_from_interval);
+	
+	void merge_taskgroup(const TaskGroup& task_group);
 	
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
@@ -40,11 +48,10 @@ class Bar : public Fl_Button{
 	static int calc_ypos(const int parent_ypos, const int height_with_yspacing, const int item_index) noexcept;
 	
 	static int calc_bar_width(const std::chrono::days& days_remaining, const std::chrono::days& days_from_interval) noexcept;
-		
-	static void bar_callback(Fl_Widget* const self, void* const data);
-		
+				
 	protected:
 	void draw() override;
+	int handle(const int event) override;
 
 	private:
 	Bar_TaskGroup task_group;
@@ -52,6 +59,9 @@ class Bar : public Fl_Button{
 	
 	void update_label();
 	void update_color_from_days_remaining() noexcept;
+	
+	void left_mouse_click_callback();
+	void right_mouse_click_callback();
 	
 	//3/4 of the height would be the actual height, leave the remaining for spacing between the bars.
 	static constexpr float bar_height_ratio_with_spacing = 0.75;
