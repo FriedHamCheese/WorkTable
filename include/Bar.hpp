@@ -15,9 +15,10 @@ class Bar_TaskGroup : public TaskGroup{
 	private:
 	Task _nearest_due_date_task;
 	Task _furthest_due_date_task;
-	
+	void sort_and_reassign();
+
 	public:
-	Bar_TaskGroup(const TaskGroup& task_group);
+	Bar_TaskGroup(const TaskGroup& taskgroup);
 	const Task& nearest_due_date_task() const {return _nearest_due_date_task;}
 	const Task& furthest_due_date_task() const {return _furthest_due_date_task;}
 	
@@ -25,22 +26,23 @@ class Bar_TaskGroup : public TaskGroup{
 	void merge_taskgroup(const TaskGroup& other);
 	void delete_task_at(const std::size_t index);
 	
-	void sort_and_reassign();
+	const Task& operator[] (const std::size_t index) const{return this->tasks[index];}
+	void set_task_at(const std::size_t index, const Task& other);
 };
 
 class Bar : public Fl_Button{
 	public:
 	Bar(const BarConstructorArgs& args);
-	Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& task_group, const std::chrono::days& days_from_interval);
+	Bar(const int xpos, const int ypos, const int width, const int height, const Bar_TaskGroup& taskgroup, const std::chrono::days& days_from_interval);
 	
-	void merge_taskgroup(const TaskGroup& task_group);
+	void merge_taskgroup(const TaskGroup& taskgroup);
 	
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
 	
-	bool is_single_task() const {return this->task_group.tasks.size() == 1;}
-	Task get_single_task() const {return this->task_group.tasks[0];}
-	TaskGroup get_taskgroup() const {return this->task_group;}
+	bool is_single_task() const {return this->taskgroup.tasks.size() == 1;}
+	Task get_single_task() const {return this->taskgroup.tasks[0];}
+	TaskGroup get_taskgroup() const {return this->taskgroup;}
 	
 	static int calc_height(const int height_with_yspacing) noexcept;
 	static int calc_height(const int timeline_height, const int task_count) noexcept;
@@ -54,7 +56,7 @@ class Bar : public Fl_Button{
 	int handle(const int event) override;
 
 	private:
-	Bar_TaskGroup task_group;
+	Bar_TaskGroup taskgroup;
 	std::chrono::days days_from_interval;
 	
 	void update_label();
@@ -71,7 +73,7 @@ class Bar : public Fl_Button{
 class BarGroup;
 
 struct BarConstructorArgs{
-	BarConstructorArgs(const BarGroup* const parent, const TaskGroup& task_group, 
+	BarConstructorArgs(const BarGroup* const parent, const TaskGroup& taskgroup, 
 						const int task_count, const int item_index);
 	
 	int xpos;
@@ -79,7 +81,7 @@ struct BarConstructorArgs{
 	int width;
 	int height;
 	std::chrono::days days_from_interval;
-	Bar_TaskGroup task_group;
+	Bar_TaskGroup taskgroup;
 };
 
 Fl_Color get_bar_color(const int days_until_deadline) noexcept;

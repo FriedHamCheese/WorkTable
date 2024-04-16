@@ -319,10 +319,10 @@ void BarGroup::draw(){
 
 
 //private:
-void BarGroup::add_bar(const TaskGroup& task_group, const int total_items, const int item_index){
+void BarGroup::add_bar(const TaskGroup& taskgroup, const int total_items, const int item_index){
 	Bar* bar;
 	try{
-		bar = new Bar(BarConstructorArgs(this, task_group, total_items, item_index));
+		bar = new Bar(BarConstructorArgs(this, taskgroup, total_items, item_index));
 		this->bars.emplace_back(bar);		
 	}
 	catch(const std::bad_alloc& alloc_err) {throw alloc_err;}
