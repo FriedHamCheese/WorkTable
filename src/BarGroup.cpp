@@ -165,6 +165,16 @@ void BarGroup::modify_task(const char* const task_name, const std::chrono::year_
 	this->redraw();
 }
 
+void BarGroup::modify_group(const char* const group_name, const int item_index){
+	if(std::abs(item_index) >= bars.size()) 
+		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
+
+	bars[item_index]->update_group_name(group_name);
+
+	this->unsaved_changes_made_to_tasks = true;
+	this->redraw();	
+}
+
 
 bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	const int_least64_t item_index = this->get_item_index(bar);
@@ -172,6 +182,15 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	if(invalid_item) return false;
 	
 	((MainWindow*)(this->parent()))->show_window_for_editing_task(bar->get_single_task(), item_index);
+	return true;
+}
+
+bool BarGroup::request_window_for_editing_group(const Bar* const bar) const{
+	const int_least64_t item_index = this->get_item_index(bar);
+	const bool invalid_item = item_index < 0;
+	if(invalid_item) return false;
+	
+	((MainWindow*)(this->parent()))->show_window_for_editing_group(bar->get_taskgroup().group_name, item_index);
 	return true;
 }
 

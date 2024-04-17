@@ -1,5 +1,7 @@
 #include "MainWindow.hpp"
 #include "BarGroup.hpp"
+
+#include "TaskGroupWindow.hpp"
 #include "TaskPropertiesWindow.hpp"
 
 #include "align.hpp"
@@ -15,6 +17,8 @@
 MainWindow::MainWindow(const int xpos, const int ypos, const int width, const int height, const char* window_title)
 :	Fl_Window(xpos, ypos, width, height, window_title),
 	task_properties_window(TaskPropertiesWindow::width, TaskPropertiesWindow::height, this
+	),
+	taskgroup_window(TaskGroupWindow::width, TaskGroupWindow::height, this
 	),
 	bar_group(50, 100, BarGroup::width, BarGroup::height
 	),
@@ -108,6 +112,10 @@ void MainWindow::modify_task(const char* const task_name, const std::chrono::yea
 	}catch(const std::invalid_argument& invalid_item_index) {throw;}
 }
 
+void MainWindow::modify_taskgroup_name(const char* const group_name, const int item_index){
+	this->bar_group.modify_group(group_name, item_index);
+}
+
 void MainWindow::show_taskgroups(){
 	this->taskgroup_button.deactivate();
 	this->taskgroup_button.redraw();
@@ -129,6 +137,10 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 	this->task_properties_window.show();
 }
 
+void MainWindow::show_window_for_editing_group(const std::string& group_name, const int item_index){
+	this->taskgroup_window.store_task(group_name, item_index);
+	this->taskgroup_window.show();
+}
 
 void MainWindow::save_tasks_to_file(){
 	try{

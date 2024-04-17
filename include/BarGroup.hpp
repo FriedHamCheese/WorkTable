@@ -23,8 +23,11 @@ class BarGroup : public Fl_Group{
 	void add_task(const Task& task);
 	bool delete_task(const int item_index);
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
+	void modify_group(const char* const task_name, const int item_index);
 
 	bool request_window_for_editing_task(const Bar* const bar) const;
+	bool request_window_for_editing_group(const Bar* const bar) const;
+	
 	void display_tasks_in_task_group(const Bar* const bar);
 	void show_taskgroups();
 	

@@ -46,6 +46,11 @@ void Bar::update_task(const char* const task_name, const std::chrono::year_month
 	this->update_color_from_days_remaining();	
 }
 
+void Bar::update_group_name(const char* const group_name){
+	this->taskgroup.group_name = group_name;
+	this->update_label();
+}
+
 void Bar::update_width(const std::chrono::days& days_from_interval, const int parent_xpos){
 	const int bar_width = Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), days_from_interval);
 	this->days_from_interval = days_from_interval;
@@ -113,7 +118,23 @@ void Bar::left_mouse_click_callback(){
 }
 
 void Bar::right_mouse_click_callback(){
-	
+	try{
+		if(!(this->is_single_task()))
+			((BarGroup*)(this->parent()))->request_window_for_editing_group(this);
+	}
+	catch(const std::bad_alloc& alloc_err){
+		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::bar_callback())");
+	}
+	catch(const std::length_error& exceeded_max_alloc){
+		fl_alert("Exceeded maximum memory allocation while requesting window for editing TaskGroup. (Bar::bar_callback())");		
+	}	
+	catch(const std::exception& unspecified_excp){
+		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::bar_callback())\n")
+								+ unspecified_excp.what();
+	}
+	catch(...){
+		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
+	}		
 }
 
 int Bar::handle(const int event){

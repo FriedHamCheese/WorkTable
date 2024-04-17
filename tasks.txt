@@ -1,6 +1,6 @@
 2024/05/03, cookies
 2024/05/02, waffles
-group{
+group!{
 2024/04/15, coffee
 2024/04/18, fries
 2024/04/25, tea

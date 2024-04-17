@@ -3,6 +3,8 @@
 
 #include "Task.hpp"
 #include "BarGroup.hpp"
+
+#include "TaskGroupWindow.hpp"
 #include "TaskPropertiesWindow.hpp"
 
 #include<FL/Fl.H>
@@ -17,9 +19,12 @@ class MainWindow : public Fl_Window{
 	void add_task(const Task& task);
 	bool delete_task(const int item_index);
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
-
+	void modify_taskgroup_name(const char* const group_name, const int item_index);
+	
 	void show_window_for_creating_new_task();
 	void show_window_for_editing_task(const Task& task_properties, const int item_index);
+	void show_window_for_editing_group(const std::string& group_name, const int item_index);
+	
 	void show_taskgroups();
 	
 	void save_tasks_to_file();
@@ -43,6 +48,7 @@ class MainWindow : public Fl_Window{
 	
 	private:
 	TaskPropertiesWindow task_properties_window;
+	TaskGroupWindow taskgroup_window;
 	
 	BarGroup bar_group;
 	Fl_Button new_task_button;

@@ -37,6 +37,7 @@ class Bar : public Fl_Button{
 	
 	void merge_taskgroup(const TaskGroup& taskgroup);
 	
+	void update_group_name(const char* const group_name);
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	void update_width(const std::chrono::days& days_from_interval, const int parent_xpos);
 	
