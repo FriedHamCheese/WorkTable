@@ -203,8 +203,16 @@ void BarGroup::show_taskgroups(){
 	this->bars.clear();
 	
 	const std::size_t taskgroup_count = this->paged_taskgroups.size();
-	for(std::size_t i = 0; i < taskgroup_count; i++){
-		this->add_bar(this->paged_taskgroups[i], taskgroup_count, i);
+	std::vector<TaskGroup> non_empty_taskgroups; non_empty_taskgroups.reserve(taskgroup_count);
+	
+	for(const TaskGroup& taskgroup : this->paged_taskgroups){
+		if(taskgroup.tasks.size() != 0)
+			non_empty_taskgroups.push_back(taskgroup);
+	}
+	
+	const std::size_t non_empty_taskgroup_count = non_empty_taskgroups.size();
+	for(std::size_t i = 0; i < non_empty_taskgroup_count; i++){
+		this->add_bar(non_empty_taskgroups[i], non_empty_taskgroup_count, i);
 	}
 
 	this->paged_taskgroups.clear();
