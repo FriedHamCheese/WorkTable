@@ -32,6 +32,7 @@ void Bar::merge_taskgroup(const TaskGroup& other_taskgroup){
 	if(has_no_taskgroup_name) this->taskgroup.group_name = this->taskgroup.tasks[0].name();
 	this->taskgroup.merge_taskgroup(other_taskgroup);
 	this->update_width(this->days_from_interval, (this->parent())->x());
+	this->update_label();
 }
 
 void Bar::update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos){
