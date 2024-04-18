@@ -23,7 +23,7 @@ TaskGroupWindow::TaskGroupWindow(const int width, const int height, MainWindow* 
 	task_name_dialog(0, ypos_below(task_name_label), 
 					width - 5, input_dialog_height
 	),
-	delete_button(5, ypos_below(task_name_dialog), 
+	delete_button(5, ypos_below(task_name_dialog) + 5, 
 					button_width - 5, button_height, "Delete"
 	),
 	save_button(xpos_right_of(delete_button), delete_button.y(), 

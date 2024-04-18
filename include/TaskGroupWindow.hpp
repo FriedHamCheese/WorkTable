@@ -25,7 +25,7 @@ class TaskGroupWindow : public Fl_Window{
 	static void delete_button_callback(Fl_Widget* const self, void* const data);
 
 	static constexpr int width = 300;
-	static constexpr int height = 100;
+	static constexpr int height = 110;
 
 	private:
 	void delete_task();	
