@@ -1,5 +1,7 @@
 #include "MainWindow.hpp"
 #include "BarGroup.hpp"
+
+#include "TaskGroupWindow.hpp"
 #include "TaskPropertiesWindow.hpp"
 
 #include "align.hpp"
@@ -15,6 +17,8 @@
 MainWindow::MainWindow(const int xpos, const int ypos, const int width, const int height, const char* window_title)
 :	Fl_Window(xpos, ypos, width, height, window_title),
 	task_properties_window(TaskPropertiesWindow::width, TaskPropertiesWindow::height, this
+	),
+	taskgroup_window(TaskGroupWindow::width, TaskGroupWindow::height, this
 	),
 	bar_group(50, 100, BarGroup::width, BarGroup::height
 	),
@@ -43,6 +47,9 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 		ypos_below(bar_group),
 		MainWindow::timescale_text_box_width, 
 		MainWindow::timescale_text_box_height
+	),
+	root_group_box(
+		0, 0, this->bar_group.x(), height, "Drop task here to move it out from group."
 	)
 {		
 	this->timescale_text_box.align(FL_ALIGN_INSIDE | FL_ALIGN_RIGHT);
@@ -76,9 +83,17 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->zoomout_button.box(FL_FLAT_BOX);
 	this->zoomin_button.box(FL_FLAT_BOX);	
 	
+	this->root_group_box.box(FL_FLAT_BOX);
+	this->root_group_box.align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);	
+	this->root_group_box.color(fl_rgb_color(147, 239, 247));
+	this->root_group_box.labelcolor(FL_WHITE);	
+	this->root_group_box.labelfont(FL_HELVETICA_BOLD);		
+	this->root_group_box.hide();
+	
 	this->taskgroup_button.deactivate();
 	
 	this->task_properties_window.set_modal();		
+	this->taskgroup_window.set_modal();		
 	
 	this->end();
 	this->add(this->bar_group);
@@ -89,6 +104,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->add(this->zoomin_button);
 	this->add(this->zoomout_button);
 	this->add(this->timescale_text_box);
+	this->add(this->root_group_box);
 	
 	this->color(FL_WHITE);
 }
@@ -106,6 +122,10 @@ void MainWindow::modify_task(const char* const task_name, const std::chrono::yea
 	try{
 		this->bar_group.modify_task(task_name, due_date, item_index);
 	}catch(const std::invalid_argument& invalid_item_index) {throw;}
+}
+
+void MainWindow::modify_taskgroup_name(const char* const group_name, const int item_index){
+	this->bar_group.modify_group(group_name, item_index);
 }
 
 void MainWindow::show_taskgroups(){
@@ -129,6 +149,14 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 	this->task_properties_window.show();
 }
 
+void MainWindow::show_window_for_editing_group(const std::string& group_name, const int item_index){
+	this->taskgroup_window.store_task(group_name, item_index);
+	this->taskgroup_window.show();
+}
+
+void MainWindow::show_root_group_box(){
+	this->root_group_box.show();
+}
 
 void MainWindow::save_tasks_to_file(){
 	try{

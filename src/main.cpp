@@ -5,7 +5,7 @@
 
 int main(){
 	try{
-		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.4ish - grouped-tasks branch");
+		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.4ish - group-gestures branch");
 		window.show();
 		return Fl::run();
 	}

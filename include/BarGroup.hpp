@@ -23,14 +23,20 @@ class BarGroup : public Fl_Group{
 	void add_task(const Task& task);
 	bool delete_task(const int item_index);
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
+	void modify_group(const char* const task_name, const int item_index);
 
 	bool request_window_for_editing_task(const Bar* const bar) const;
+	bool request_window_for_editing_group(const Bar* const bar) const;
+	
 	void display_tasks_in_task_group(const Bar* const bar);
 	void show_taskgroups();
+	void signal_bar_being_dragged();
 	
 	void save_tasks_to_file();
 	void revert_to_tasks_from_file();
+	void signal_hide_root_group_box();	
 	
+	void handle_drag_event(const Bar* const clicked_bar);
 	
 	std::chrono::days get_days_from_interval() const;
 	
@@ -52,8 +58,10 @@ class BarGroup : public Fl_Group{
 	void draw() override;
 		
 	private:
-	void add_bar(const TaskGroup& task_group, const int total_items, const int item_index);
+	void add_bar(const TaskGroup& taskgroup, const int total_items, const int item_index);
 	void add_bar(const Task& task);
+	
+	bool check_mouse_released_in_root_group_box();
 	
 	int_least64_t get_item_index(const Bar* const bar) const;
 	
