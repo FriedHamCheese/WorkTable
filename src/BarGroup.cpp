@@ -240,6 +240,11 @@ void BarGroup::show_taskgroups(){
 	this->redraw();
 }
 
+void BarGroup::signal_bar_being_dragged(){
+	if(this->task_group_id != this->not_in_any_group)
+		((MainWindow*)(this->parent()))->show_root_group_box();
+}
+
 void BarGroup::save_tasks_to_file(){
 	std::vector<TaskGroup> taskgroups;
 	
@@ -280,18 +285,30 @@ void BarGroup::revert_to_tasks_from_file(){
 
 
 void BarGroup::handle_drag_event(const Bar* const clicked_bar){
-	for(const std::unique_ptr<Bar>& bar : bars){
-		if(Fl::event_inside(bar.get())){
-			bar->merge_taskgroup(clicked_bar->get_taskgroup());
-			const int clicked_bar_index  = this->get_item_index(clicked_bar);
-			if(clicked_bar_index == -1){
-				const std::string msg = std::string(__FILE__) + ':' + std::to_string(__LINE__) + ": Attempting to delete a non-member bar.";
-				fl_alert(msg.c_str());
-			}else{
-				this->delete_task(clicked_bar_index);
+	this->signal_hide_root_group_box();	
+
+	if(this->check_mouse_released_in_root_group_box() && this->task_group_id != not_in_any_group){
+		this->paged_taskgroups.emplace_back(clicked_bar->get_taskgroup());
+		const int clicked_bar_index  = this->get_item_index(clicked_bar);		
+		this->delete_task(clicked_bar_index);
+		this->redraw();
+		return;
+	}
+
+	if(this->task_group_id == not_in_any_group){
+		for(const std::unique_ptr<Bar>& bar : bars){
+			if(Fl::event_inside(bar.get())){
+				bar->merge_taskgroup(clicked_bar->get_taskgroup());
+				const int clicked_bar_index  = this->get_item_index(clicked_bar);
+				if(clicked_bar_index == -1){
+					const std::string msg = std::string(__FILE__) + ':' + std::to_string(__LINE__) + ": Attempting to delete a non-member bar.";
+					fl_alert(msg.c_str());
+				}else{
+					this->delete_task(clicked_bar_index);
+				}
+				this->redraw();
+				return;
 			}
-			this->redraw();
-			return;
 		}
 	}
 }
@@ -427,4 +444,11 @@ int BarGroup::current_date_line_xpos() const{
 
 int BarGroup::next_interval_date_line_xpos() const{
 	return this->x() +this->bar_max_width + this->bar_xoffset;
+}
+
+bool BarGroup::check_mouse_released_in_root_group_box(){
+	return ((MainWindow*)(this->parent()))->mouse_released_in_root_group_box();
+}
+void BarGroup::signal_hide_root_group_box() {
+	((MainWindow*)(this->parent()))->hide_root_group_box();
 }

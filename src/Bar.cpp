@@ -142,17 +142,19 @@ int Bar::handle(const int event){
 	constexpr int handled_event = 1;
 
 	switch(event){
-		case FL_PUSH:{
+		case FL_PUSH:
 			return handled_event;
-		}
-		case FL_RELEASE:{
-			const bool clicked_and_released_same_button = Fl::event_inside(this) != 0;
-			const int clicked_button = Fl::event_button();
-			if(clicked_and_released_same_button){
+		
+		case FL_RELEASE:{			
+			const bool clicked_and_released_same_bar = Fl::event_inside(this) != 0;
+			if(clicked_and_released_same_bar){
+				const int clicked_button = Fl::event_button();
+				((BarGroup*)(this->parent()))->signal_hide_root_group_box();
+				
 				if(clicked_button == FL_LEFT_MOUSE)
-					left_mouse_click_callback();
+					this->left_mouse_click_callback();
 				if(clicked_button == FL_RIGHT_MOUSE)
-					right_mouse_click_callback();
+					this->right_mouse_click_callback();
 			}else{
 				//the user dragged the mouse to other widget and releases the mouse button hold, pass this up.				
 				((BarGroup*)(this->parent()))->handle_drag_event(this);
@@ -161,9 +163,10 @@ int Bar::handle(const int event){
 			//return is fine, it's on stack, not accessing the object.
 			return handled_event;
 		}		
-		case FL_DRAG:{
+		case FL_DRAG:
+			((BarGroup*)(this->parent()))->signal_bar_being_dragged();
 			return handled_event;
-		}		
+
 		default:
 			return Fl_Button::handle(event);
 	}

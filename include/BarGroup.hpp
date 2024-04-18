@@ -30,9 +30,11 @@ class BarGroup : public Fl_Group{
 	
 	void display_tasks_in_task_group(const Bar* const bar);
 	void show_taskgroups();
+	void signal_bar_being_dragged();
 	
 	void save_tasks_to_file();
 	void revert_to_tasks_from_file();
+	void signal_hide_root_group_box();	
 	
 	void handle_drag_event(const Bar* const clicked_bar);
 	
@@ -58,6 +60,8 @@ class BarGroup : public Fl_Group{
 	private:
 	void add_bar(const TaskGroup& taskgroup, const int total_items, const int item_index);
 	void add_bar(const Task& task);
+	
+	bool check_mouse_released_in_root_group_box();
 	
 	int_least64_t get_item_index(const Bar* const bar) const;
 	

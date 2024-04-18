@@ -1,9 +1,7 @@
 #include "TaskGroupWindow.hpp"
 #include "MainWindow.hpp"
 
-#include "Task.hpp"
 #include "align.hpp"
-#include "task_io.hpp"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Input.H>
@@ -20,8 +18,8 @@ TaskGroupWindow::TaskGroupWindow(const int width, const int height, MainWindow* 
 :	Fl_Window(width, height, "Group"),
 	task_name_label(0, 2, width, 30, "Group name:"
 	),
-	task_name_dialog(0, ypos_below(task_name_label), 
-					width - 5, input_dialog_height
+	task_name_dialog(5, ypos_below(task_name_label), 
+					width - 10, 30
 	),
 	delete_button(5, ypos_below(task_name_dialog) + 5, 
 					button_width - 5, button_height, "Delete"

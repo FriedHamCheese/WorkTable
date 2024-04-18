@@ -25,6 +25,8 @@ class MainWindow : public Fl_Window{
 	void show_window_for_editing_task(const Task& task_properties, const int item_index);
 	void show_window_for_editing_group(const std::string& group_name, const int item_index);
 	
+	void show_root_group_box();
+	
 	void show_taskgroups();
 	
 	void save_tasks_to_file();
@@ -59,10 +61,17 @@ class MainWindow : public Fl_Window{
 	Fl_Button zoomin_button;	
 	Fl_Box timescale_text_box;
 	
+	Fl_Box root_group_box;
+	
 	static constexpr int button_width = 25;
 	static constexpr int button_height = 25;
 	static constexpr int timescale_text_box_width = 100;
 	static constexpr int timescale_text_box_height = 25;
+	
+	public:
+	void hide_root_group_box() {this->root_group_box.hide();}
+	bool mouse_released_in_root_group_box() const {return Fl::event_inside(&(this->root_group_box));}
+	
 };
 
 #endif
