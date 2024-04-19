@@ -129,9 +129,19 @@ void MainWindow::modify_taskgroup_name(const char* const group_name, const int i
 }
 
 void MainWindow::show_taskgroups(){
-	this->taskgroup_button.deactivate();
-	this->taskgroup_button.redraw();
-	this->bar_group.show_taskgroups();
+	try{
+		this->taskgroup_button.deactivate();
+		this->taskgroup_button.redraw();
+		this->bar_group.show_taskgroups();
+	}
+	catch(const std::exception& excp){
+		const std::string msg = std::string("MainWindow::show_taskgroups(): caught an exception while returning to root group.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("MainWindow::show_taskgroups(): caught an unspecified throw while returning to root group.");
+	}
 }
 
 void MainWindow::enable_taskgroup_button(){
@@ -196,6 +206,7 @@ void MainWindow::revert_to_tasks_from_file(){
 	
 		try{
 			this->bar_group.revert_to_tasks_from_file();
+			this->bar_group.redraw();		
 		}
 		catch(const std::bad_alloc& alloc_err) {
 			fl_alert("Memory allocation error while reverting changes to tasks. (MainWindow::revert_to_tasks_from_file(): std::bad_alloc)"
@@ -222,23 +233,41 @@ void MainWindow::revert_to_tasks_from_file(){
 	catch(...){
 		fl_alert("Caught unspecified throw while reverting tasks. (MainWindow::revert_to_tasks_from_file())");
 	}	
-	
-	this->bar_group.redraw();
 }
 
 
 void MainWindow::zoomin_timescale(){
-	const Timescale new_timescale = this->bar_group.zoomin_timescale();	
-	
-	this->timescale_text_box.label(timescale::get_timescale_str(new_timescale));	
-	this->redraw();
+	try{
+		const Timescale new_timescale = this->bar_group.zoomin_timescale();	
+		
+		this->timescale_text_box.label(timescale::get_timescale_str(new_timescale));	
+		this->redraw();
+	}
+	catch(const std::exception& excp){
+		const std::string msg = std::string("MainWindow::zoomin_timescale(): caught an exception while changing timescale.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("MainWindow::zoomin_timescale(): caught an unspecfied throw while changing timescale.");
+	}
 }
 
 void MainWindow::zoomout_timescale(){
-	const Timescale new_timescale = this->bar_group.zoomout_timescale();	
-	
-	this->timescale_text_box.label(timescale::get_timescale_str(new_timescale));
-	this->redraw();	
+	try{
+		const Timescale new_timescale = this->bar_group.zoomout_timescale();	
+		
+		this->timescale_text_box.label(timescale::get_timescale_str(new_timescale));
+		this->redraw();	
+	}
+	catch(const std::exception& excp){
+		const std::string msg = std::string("MainWindow::zoomout_timescale(): caught an exception while changing timescale.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("MainWindow::zoomout_timescale(): caught an unspecfied throw while changing timescale.");
+	}	
 }
 
 

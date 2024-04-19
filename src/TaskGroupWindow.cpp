@@ -12,7 +12,7 @@
 #include <FL/fl_ask.h>
 
 #include <string>
-#include <stdexcept>
+#include <exception>
 
 TaskGroupWindow::TaskGroupWindow(const int width, const int height, MainWindow* const main_window)
 :	Fl_Window(width, height, "Group"),
@@ -73,13 +73,33 @@ void TaskGroupWindow::delete_button_callback(Fl_Widget* const self, void* const 
  
 
 void TaskGroupWindow::delete_task(){
-	if(!main_window->delete_task(modifying_item_index)){
-		fl_alert("Failed to delete task."
-				"\nTaskGroupWindow::delete_task(): Invalid deletion index.");
+	try{
+		if(!main_window->delete_task(modifying_item_index)){
+			fl_alert("Failed to delete task."
+					"\nTaskGroupWindow::delete_task(): Invalid deletion index.");
+		}
+	}catch(const std::exception& excp){
+		const std::string msg = std::string("TaskGroupWindow::delete_task(): an exception was thrown while deleting task.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}catch(...){
+		fl_alert("TaskGroupWindow::delete_task(): caught an unspecified throw while deleting task.");
 	}
 }
 
 void TaskGroupWindow::modify_task(){
-	this->main_window->modify_taskgroup_name(task_name_dialog.value(), modifying_item_index);
+	try{
+		this->main_window->modify_taskgroup_name(task_name_dialog.value(), modifying_item_index);
+	}
+	catch(const std::exception& excp){
+		const std::string msg = std::string("TaskGroupWindow::modify_task(): an exception was thrown while editing group name.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		const std::string msg = "TaskGroupWindow::modify_task(): caught an unspecified throw while editing group name.";
+		fl_alert(msg.c_str());
+	}
+	
 	this->hide();
 }

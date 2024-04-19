@@ -67,9 +67,9 @@ TaskPropertiesWindow::TaskPropertiesWindow(const int width, const int height, Ma
 }
 
 void TaskPropertiesWindow::set_window_for_creating_task(){
-	//null as args for const char* clears out text
-	this->task_name_dialog.value(nullptr);
-	this->due_date_dialog.value(nullptr);
+	const char* const empty_dialog = nullptr;
+	this->task_name_dialog.value(empty_dialog);
+	this->due_date_dialog.value(empty_dialog);
 	this->label("Create a new task.");
 	this->delete_button.label("Cancel");
 	this->save_button.label("Create");	
@@ -100,8 +100,8 @@ void TaskPropertiesWindow::save_button_pressed(){
 		break;
 		
 		default:{
-			const std::string msg = "TaskPropertiesWindow::Mode case " + std::to_string(int(this->current_mode)) + " was not handled in switch.";
-			throw std::logic_error(msg);
+			const std::string msg = "TaskPropertiesWindow::save_button_pressed(): Mode case " + std::to_string(int(this->current_mode)) + " was not handled in switch.";
+			fl_alert(msg.c_str());
 		}
 	}
 }
@@ -127,55 +127,85 @@ void TaskPropertiesWindow::delete_button_callback(Fl_Widget* const self, void* c
 
 //private
 void TaskPropertiesWindow::add_task(){
-	this->warning_message.label("");	
-	
-	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-	if(!task_has_name){
-		this->warning_message.label("Please name the task.");
-		return;
-	}
-	
 	try{
-		const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(this->due_date_dialog.value()));
-	
-		this->main_window->add_task(Task(new_due_date, std::string(task_name_dialog.value())));
-		this->hide();
+		this->warning_message.label("");	
+		
+		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+		if(!task_has_name){
+			this->warning_message.label("Please name the task.");
+			return;
+		}
+		
+		try{
+			const std::chrono::year_month_day new_due_date = str_to_ymd(std::string(this->due_date_dialog.value()));
+		
+			this->main_window->add_task(Task(new_due_date, std::string(task_name_dialog.value())));
+			this->hide();
+		}
+		catch(const std::invalid_argument& invalid_ymd_str){
+			this->warning_message.copy_label(invalid_ymd_str.what());
+		}
 	}
-	catch(const std::invalid_argument& invalid_ymd_str){
-		this->warning_message.copy_label(invalid_ymd_str.what());
+	catch(const std::exception& excp){
+		const std::string msg = std::string("TaskPropertiesWindow::add_task(): an exception was thrown while adding task.")
+								+ "\nException message: " + excp.what();
+	}
+	catch(...){
+		fl_alert("TaskPropertiesWindow::add_task(): caught an unspecified throw while adding task.");		
 	}
 }
 
 void TaskPropertiesWindow::delete_task(){
-	if(!main_window->delete_task(modifying_item_index)){
-		fl_alert("Failed to delete task."
-				"\nTaskPropertiesWindow::delete_task(): Invalid deletion index.");
+	try{
+		if(!main_window->delete_task(modifying_item_index)){
+			fl_alert("Failed to delete task."
+					"\nTaskPropertiesWindow::delete_task(): Invalid deletion index.");
+		}
+	}
+	catch(const std::exception& excp){
+		const std::string msg = std::string("TaskPropertiesWindow::delete_task(): an exception was thrown while deleting task.")
+								+ "\nException message: " + excp.what();
+		fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("TaskPropertiesWindow::delete_task(): caught an unspecified throw while deleting task.");
 	}
 }
 
 void TaskPropertiesWindow::modify_task(){
-	this->warning_message.label("");
-	
-	const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
-	if(!task_has_name){
-		this->warning_message.label("Please name the task.");
-		return;
-	}		
-	
-	std::chrono::year_month_day new_due_date;
 	try{
-		new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
-	}
-	catch(const std::invalid_argument& invalid_ymd_str){
-		this->warning_message.copy_label(invalid_ymd_str.what());		
-	}		
+		this->warning_message.label("");
+		
+		const bool task_name_is_empty = strlen(this->task_name_dialog.value()) <= 0;
+		if(task_name_is_empty){
+			this->warning_message.label("Please name the task.");
+			return;
+		}
+		
+		std::chrono::year_month_day new_due_date;
+		try{
+			new_due_date = str_to_ymd(std::string(due_date_dialog.value()));
+		}
+		catch(const std::invalid_argument& invalid_ymd_str){
+			this->warning_message.copy_label(invalid_ymd_str.what());
+			return;	
+		}
 
-	try{
-		this->main_window->modify_task(task_name_dialog.value(), new_due_date, modifying_item_index);
-		this->hide();
+		try{
+			this->main_window->modify_task(task_name_dialog.value(), new_due_date, modifying_item_index);
+			this->hide();
+		}
+		catch(const std::invalid_argument& invalid_ymd_str){
+			fl_alert("Failed to save changes."
+					"\nTaskPropertiesWindow::modify_task(): Invalid task index.");
+		}
 	}
-	catch(const std::invalid_argument& invalid_ymd_str){
-		fl_alert("Failed to save changes."
-				"\nTaskPropertiesWindow::modify_task(): Invalid task index.");
-	}	
+	catch(const std::exception& excp){
+			const std::string msg = std::string("TaskPropertiesWindow::modify_task(): an exception was thrown while editing task.")
+									+ "\nException message: " + excp.what();
+			fl_alert(msg.c_str());
+	}
+	catch(...){
+		fl_alert("TaskPropertiesWindow::modify_task(): caught an unspecified throw while editing task.");
+	}
 }
