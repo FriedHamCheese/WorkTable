@@ -13,8 +13,8 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Group.H>
 
-#include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
+#include <FL/fl_draw.H>
 
 #include <cmath>
 #include <vector>
@@ -22,7 +22,6 @@
 #include <string>
 #include <cstdint>
 #include <stdexcept>
-#include <iostream>
 #include <algorithm>
 
 BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int height)
@@ -36,8 +35,8 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 						ypos_below(*this) - this->date_label_yraise, 
 						this->date_label_width, this->date_label_height
 	),
-	current_ymd(get_current_ymd()),
 	current_timescale(timescale::default_timescale),
+	current_ymd(get_current_ymd()),	
 	next_interval(get_next_interval(this->current_ymd, this->current_timescale)),
 	unsaved_changes_made_to_tasks(false)
 {
@@ -52,7 +51,9 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 	this->current_date_label.copy_label(ymd_to_string(this->current_ymd).c_str());
 	this->current_date_label.align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
 		
-	try{this->load_tasks_to_bars();}
+	try{
+		this->load_tasks_to_bars();
+	}
 	catch(const std::bad_alloc& alloc_err) {
 		fl_alert("Memory allocation error while loading tasks. (BarGroup::BarGroup(): std::bad_alloc)"
 				"\nIt is recommended to exit the program without saving in order to not overwrite task list with faulty data.");		
@@ -83,10 +84,10 @@ BarGroup::BarGroup(const int xpos, const int ypos, const int width, const int he
 
 BarGroup::~BarGroup() noexcept{
 	if(this->unsaved_changes_made_to_tasks){
-		const int save_unsaved_changes = 1;
-		const int user_option = fl_choice("There were unsaved changes made to task list. Would you like to save the changes?", "No", "Yes", 0);
-		
 		try{
+			const int save_unsaved_changes = 1;
+			const int user_option = fl_choice("There were unsaved changes made to task list. Would you like to save the changes?", "No", "Yes", 0);
+		
 			if(user_option == save_unsaved_changes){
 				save_tasks_to_file();
 				fl_alert("Tasks saved successfully.");
@@ -109,24 +110,10 @@ BarGroup::~BarGroup() noexcept{
 	}
 }
 
-void BarGroup::load_tasks_to_bars(){
-	std::vector<TaskGroup> task_groups;
-	
-	try{
-		task_groups = get_tasks();
-	}
-	catch(const std::ios_base::failure& file_io_error) {throw;}
-	catch(const std::runtime_error& file_not_opened) {throw;}
-
-	const auto task_count = task_groups.size();	
-	for(decltype(task_groups.size()) i = 0; i < task_count; ++i)
-		this->add_bar(task_groups[i], task_count, i);
-}
-
 
 void BarGroup::add_task(const Task& task){
 	this->add_bar(task);
-	if(this->task_group_id != not_in_any_group){
+	if(this->displaying_a_taskgroup()){
 		this->paged_taskgroups[this->task_group_id].tasks.push_back(task);
 	}
 	
@@ -134,14 +121,20 @@ void BarGroup::add_task(const Task& task){
 	this->redraw();
 }
 
-bool BarGroup::delete_task(const int item_index){
-	try{
-		this->remove(this->bars.at(item_index).get());
-		if(this->task_group_id != not_in_any_group){
-			this->paged_taskgroups[this->task_group_id].tasks.erase(this->paged_taskgroups[this->task_group_id].tasks.begin() + item_index);
-		}
-		
-	}catch(const std::out_of_range& invalid_item_index) {return false;}
+bool BarGroup::delete_task(const int item_index){	
+	if(this->bars.size() <= std::abs(item_index))
+		return false;
+	
+	if(this->displaying_a_taskgroup()){
+		if(this->paged_taskgroups[this->task_group_id].tasks.size() <= std::abs(item_index))
+			return false;
+	}
+	
+	this->remove(this->bars[item_index].get());
+	
+	if(this->displaying_a_taskgroup()){
+		this->paged_taskgroups[this->task_group_id].tasks.erase(this->paged_taskgroups[this->task_group_id].tasks.begin() + item_index);
+	}
 	
 	this->bars.erase(this->bars.begin() + item_index);
 	this->unsaved_changes_made_to_tasks = true;
@@ -152,12 +145,9 @@ bool BarGroup::delete_task(const int item_index){
 }
 
 void BarGroup::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
-	if(std::abs(item_index) >= bars.size()) 
-		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
-
 	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());		
 	
-	if(this->task_group_id != not_in_any_group){
+	if(this->displaying_a_taskgroup()){
 		this->paged_taskgroups[task_group_id].tasks[item_index] = bars[item_index]->get_single_task();
 	}
 
@@ -166,9 +156,6 @@ void BarGroup::modify_task(const char* const task_name, const std::chrono::year_
 }
 
 void BarGroup::modify_group(const char* const group_name, const int item_index){
-	if(std::abs(item_index) >= bars.size()) 
-		throw std::invalid_argument("Invalid task index passed to BarGroup::modify_task().");
-
 	bars[item_index]->update_group_name(group_name);
 
 	this->unsaved_changes_made_to_tasks = true;
@@ -176,7 +163,7 @@ void BarGroup::modify_group(const char* const group_name, const int item_index){
 }
 
 
-bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
+bool BarGroup::request_window_for_editing_task(const Bar* const bar){
 	const int_least64_t item_index = this->get_item_index(bar);
 	const bool invalid_item = item_index < 0;
 	if(invalid_item) return false;
@@ -185,7 +172,7 @@ bool BarGroup::request_window_for_editing_task(const Bar* const bar) const{
 	return true;
 }
 
-bool BarGroup::request_window_for_editing_group(const Bar* const bar) const{
+bool BarGroup::request_window_for_editing_group(const Bar* const bar){
 	const int_least64_t item_index = this->get_item_index(bar);
 	const bool invalid_item = item_index < 0;
 	if(invalid_item) return false;
@@ -194,11 +181,16 @@ bool BarGroup::request_window_for_editing_group(const Bar* const bar) const{
 	return true;
 }
 
+
 void BarGroup::display_tasks_in_task_group(const Bar* const bar){
 	std::int_least64_t bar_index = this->get_item_index(bar);
+	if(bar_index == -1)
+		throw std::invalid_argument("Invalid task index passed to BarGroup::display_tasks_in_task_group().");
+	
 	this->task_group_id = bar_index;
 	
 	this->paged_taskgroups.clear();
+	this->paged_taskgroups.reserve(this->bars.size());
 	
 	for(const std::unique_ptr<Bar>& bar : this->bars){
 		this->paged_taskgroups.push_back(bar->get_taskgroup());
@@ -218,14 +210,16 @@ void BarGroup::display_tasks_in_task_group(const Bar* const bar){
 }
 
 void BarGroup::show_taskgroups(){
-	if(this->task_group_id == not_in_any_group) return;
+	if(!(this->displaying_a_taskgroup())) return;
 	this->bars.clear();
 	
 	const std::size_t taskgroup_count = this->paged_taskgroups.size();
-	std::vector<TaskGroup> non_empty_taskgroups; non_empty_taskgroups.reserve(taskgroup_count);
+	std::vector<TaskGroup> non_empty_taskgroups; 
+	non_empty_taskgroups.reserve(taskgroup_count);
 	
 	for(const TaskGroup& taskgroup : this->paged_taskgroups){
-		if(taskgroup.tasks.size() != 0)
+		const bool taskgroup_not_empty = taskgroup.tasks.size() != 0;
+		if(taskgroup_not_empty) 
 			non_empty_taskgroups.push_back(taskgroup);
 	}
 	
@@ -240,10 +234,6 @@ void BarGroup::show_taskgroups(){
 	this->redraw();
 }
 
-void BarGroup::signal_bar_being_dragged(){
-	if(this->task_group_id != this->not_in_any_group)
-		((MainWindow*)(this->parent()))->show_root_group_box();
-}
 
 void BarGroup::save_tasks_to_file(){
 	std::vector<TaskGroup> taskgroups;
@@ -284,40 +274,46 @@ void BarGroup::revert_to_tasks_from_file(){
 }
 
 
-void BarGroup::handle_drag_event(const Bar* const clicked_bar){
+void BarGroup::handle_bar_mouse_button_release(const Bar* const clicked_bar){
 	this->signal_hide_root_group_box();	
-
-	if(this->check_mouse_released_in_root_group_box() && this->task_group_id != not_in_any_group){
+	
+	const bool move_task_to_rootgroup = this->check_mouse_released_in_root_group_box() && this->displaying_a_taskgroup();
+	if(move_task_to_rootgroup){
 		this->paged_taskgroups.emplace_back(clicked_bar->get_taskgroup());
-		const int clicked_bar_index  = this->get_item_index(clicked_bar);		
+		const int clicked_bar_index  = this->get_item_index(clicked_bar);
 		this->delete_task(clicked_bar_index);
 		this->redraw();
 		return;
 	}
-
-	if(this->task_group_id == not_in_any_group){
-		for(const std::unique_ptr<Bar>& bar : bars){
-			if(Fl::event_inside(bar.get())){
-				bar->merge_taskgroup(clicked_bar->get_taskgroup());
-				const int clicked_bar_index  = this->get_item_index(clicked_bar);
-				if(clicked_bar_index == -1){
-					const std::string msg = std::string(__FILE__) + ':' + std::to_string(__LINE__) + ": Attempting to delete a non-member bar.";
-					fl_alert(msg.c_str());
-				}else{
-					this->delete_task(clicked_bar_index);
-				}
+	
+	const bool possible_taskgroup_merge = !(this->displaying_a_taskgroup());
+	if(possible_taskgroup_merge){
+		for(const std::unique_ptr<Bar>& bar_at_rootgroup : bars)
+		{
+			const bool mouse_button_released_in_taskgroup = Fl::event_inside(bar_at_rootgroup.get());
+			if(mouse_button_released_in_taskgroup){
+				bar_at_rootgroup->merge_taskgroup(clicked_bar->get_taskgroup());
+				this->delete_task(this->get_item_index(clicked_bar));
 				this->redraw();
-				return;
+				break;
 			}
 		}
 	}
+}
+
+void BarGroup::signal_bar_being_dragged(){
+	if(this->displaying_a_taskgroup())
+		((MainWindow*)(this->parent()))->show_root_group_box();
+}
+
+void BarGroup::signal_hide_root_group_box() {
+	((MainWindow*)(this->parent()))->hide_root_group_box();
 }
 
 
 std::chrono::days BarGroup::get_days_from_interval() const{
 	return delta_days(next_interval, current_ymd);
 }
-
 
 //layout related code
 int BarGroup::current_date_label_xpos() const{
@@ -361,8 +357,22 @@ void BarGroup::draw(){
 }
 
 
-
 //private:
+void BarGroup::load_tasks_to_bars(){
+	std::vector<TaskGroup> task_groups;
+	
+	try{
+		task_groups = get_tasks();
+	}
+	catch(const std::ios_base::failure& file_io_error) {throw;}
+	catch(const std::runtime_error& file_not_opened) {throw;}
+
+	const auto task_count = task_groups.size();	
+	for(decltype(task_groups.size()) i = 0; i < task_count; ++i)
+		this->add_bar(task_groups[i], task_count, i);
+}
+
+
 void BarGroup::add_bar(const TaskGroup& taskgroup, const int total_items, const int item_index){
 	Bar* bar;
 	try{
@@ -401,12 +411,12 @@ int_least64_t BarGroup::get_item_index(const Bar* const bar) const{
 
 
 void BarGroup::adjust_vertical_layout(){
-	const auto bar_count = this->bars.size();
+	const std::size_t bar_count = this->bars.size();
 	
 	const int bar_height = Bar::calc_height(this->h(), bar_count);
 	const int bar_height_with_yspacing = Bar::calc_height_with_yspacing(this->h(), bar_count);
 	
-	for(decltype(this->bars.size()) i = 0; i < bar_count; ++i){
+	for(std::size_t i = 0; i < bar_count; ++i){
 		const std::unique_ptr<Bar>& bar = this->bars[i];
 		
 		const int bar_ypos = Bar::calc_ypos(this->y(), bar_height_with_yspacing, i);
@@ -448,7 +458,4 @@ int BarGroup::next_interval_date_line_xpos() const{
 
 bool BarGroup::check_mouse_released_in_root_group_box(){
 	return ((MainWindow*)(this->parent()))->mouse_released_in_root_group_box();
-}
-void BarGroup::signal_hide_root_group_box() {
-	((MainWindow*)(this->parent()))->hide_root_group_box();
 }

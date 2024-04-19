@@ -112,6 +112,7 @@ void Bar::left_mouse_click_callback(){
 	catch(const std::exception& unspecified_excp){
 		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::bar_callback())\n")
 								+ unspecified_excp.what();
+		fl_alert(msg.c_str());									
 	}
 	catch(...){
 		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
@@ -132,6 +133,7 @@ void Bar::right_mouse_click_callback(){
 	catch(const std::exception& unspecified_excp){
 		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::bar_callback())\n")
 								+ unspecified_excp.what();
+		fl_alert(msg.c_str());																	
 	}
 	catch(...){
 		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
@@ -157,7 +159,7 @@ int Bar::handle(const int event){
 					this->right_mouse_click_callback();
 			}else{
 				//the user dragged the mouse to other widget and releases the mouse button hold, pass this up.				
-				((BarGroup*)(this->parent()))->handle_drag_event(this);
+				((BarGroup*)(this->parent()))->handle_bar_mouse_button_release(this);
 				//this widget may be deleted after the handle_drag_event, so no further access to the object.
 			}
 			//return is fine, it's on stack, not accessing the object.
