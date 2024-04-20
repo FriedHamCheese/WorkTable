@@ -7,6 +7,7 @@
 #include <FL/fl_draw.h>
 #include <FL/fl_ask.h>
 
+#include <cmath>
 #include <string>
 #include <iostream>
 
@@ -20,7 +21,7 @@ Bar::Bar(const int xpos, const int ypos, const int width, const int height, cons
 	taskgroup(taskgroup),
 	days_from_interval(days_from_interval)
 {
-	this->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);			
+	this->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_WRAP);
 	this->update_color_from_days_remaining();
 	this->box(FL_NO_BOX);
 	
@@ -32,6 +33,12 @@ void Bar::merge_taskgroup(const TaskGroup& other_taskgroup){
 	if(has_no_taskgroup_name) this->taskgroup.group_name = this->taskgroup.tasks[0].name();
 	this->taskgroup.merge_taskgroup(other_taskgroup);
 	this->update_width(this->days_from_interval, (this->parent())->x());
+	this->update_label();
+}
+
+
+void Bar::update_group_name(const char* const group_name){
+	this->taskgroup.group_name = group_name;
 	this->update_label();
 }
 
@@ -47,22 +54,17 @@ void Bar::update_task(const char* const task_name, const std::chrono::year_month
 	this->update_color_from_days_remaining();	
 }
 
-void Bar::update_group_name(const char* const group_name){
-	this->taskgroup.group_name = group_name;
-	this->update_label();
-}
-
 void Bar::update_width(const std::chrono::days& days_from_interval, const int parent_xpos){
 	const int bar_width = Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), days_from_interval);
-	this->days_from_interval = days_from_interval;
-	
-	const bool use_overdue_position = this->taskgroup.nearest_due_date_task().days_remaining().count() < 1;
 	const bool all_tasks_are_overdue = bar_width <= 0;
+	
+	this->days_from_interval = days_from_interval;
+	const bool use_overdue_position = this->taskgroup.nearest_due_date_task().days_remaining().count() < 1;
 	
 	if(use_overdue_position && all_tasks_are_overdue)
 		this->resize(parent_xpos, this->y(), BarGroup::bar_xoffset, this->h());
 	else if(use_overdue_position && !all_tasks_are_overdue)
-		this->resize(parent_xpos, this->y(), bar_width + BarGroup::bar_xoffset, this->h());
+		this->resize(parent_xpos, this->y(), bar_width + BarGroup::overdue_bar_width, this->h());
 	else
 		this->resize(parent_xpos + BarGroup::bar_xoffset, this->y(), bar_width, this->h());
 }
@@ -70,7 +72,7 @@ void Bar::update_width(const std::chrono::days& days_from_interval, const int pa
 
 //static public
 int Bar::calc_height(const int height_with_yspacing) noexcept{
-	return height_with_yspacing * bar_height_ratio_with_spacing; 
+	return std::floor(float(height_with_yspacing) * float(bar_height_ratio_with_spacing)); 
 }
 
 int Bar::calc_height(const int bar_group_height, const int task_count) noexcept{
@@ -104,39 +106,41 @@ void Bar::left_mouse_click_callback(){
 		}
 	}
 	catch(const std::bad_alloc& alloc_err){
-		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::bar_callback())");
+		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::left_mouse_click_callback())");
 	}
 	catch(const std::length_error& exceeded_max_alloc){
-		fl_alert("Exceeded maximum memory allocation while requesting window for editing TaskGroup. (Bar::bar_callback())");		
+		fl_alert("Exceeded maximum memory allocation while requesting window for editing TaskGroup. (Bar::left_mouse_click_callback())");		
 	}	
 	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::bar_callback())\n")
+		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::left_mouse_click_callback())\n")
 								+ unspecified_excp.what();
 		fl_alert(msg.c_str());									
 	}
 	catch(...){
-		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
+		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::left_mouse_click_callback())");				
 	}	
 }
 
 void Bar::right_mouse_click_callback(){
 	try{
-		if(!(this->is_single_task()))
+		if(this->is_single_task())
+			((BarGroup*)(this->parent()))->request_window_for_editing_task(this);
+		else
 			((BarGroup*)(this->parent()))->request_window_for_editing_group(this);
 	}
 	catch(const std::bad_alloc& alloc_err){
-		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::bar_callback())");
+		fl_alert("Caught memory allocation error while requesting window for editing TaskGroup. (Bar::right_mouse_click_callback())");
 	}
 	catch(const std::length_error& exceeded_max_alloc){
-		fl_alert("Exceeded maximum memory allocation while requesting window for editing TaskGroup. (Bar::bar_callback())");		
+		fl_alert("Exceeded maximum memory allocation while requesting window for editing TaskGroup. (Bar::right_mouse_click_callback())");		
 	}	
 	catch(const std::exception& unspecified_excp){
-		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::bar_callback())\n")
+		const std::string msg = std::string("Caught unspecified exception while requesting window for editing TaskGroup. (Bar::right_mouse_click_callback())\n")
 								+ unspecified_excp.what();
 		fl_alert(msg.c_str());																	
 	}
 	catch(...){
-		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::bar_callback())");				
+		fl_alert("Caught unspecified throw while requesting window for editing TaskGroup. (Bar::right_mouse_click_callback())");				
 	}		
 }
 
@@ -147,7 +151,10 @@ int Bar::handle(const int event){
 		case FL_PUSH:
 			return handled_event;
 		
-		case FL_RELEASE:{			
+		case FL_RELEASE:{
+			//you can also drag and drop in the same bar and it would register as a click as well,
+			//because every drag has a mouse click; we could try to discern between a drag and a click,
+			//but I think this is fine.
 			const bool clicked_and_released_same_bar = Fl::event_inside(this) != 0;
 			if(clicked_and_released_same_bar){
 				const int clicked_button = Fl::event_button();
@@ -195,15 +202,16 @@ void Bar::update_color_from_days_remaining() noexcept{
 void Bar::draw(){
 	const bool use_overdue_position = this->taskgroup.nearest_due_date_task().days_remaining().count() < 1;
 	const bool all_tasks_are_overdue = this->taskgroup.furthest_due_date_task().days_remaining().count() < 1;
+
 	if(use_overdue_position && all_tasks_are_overdue){
-		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), BarGroup::bar_xoffset, this->h(), get_bar_color(this->taskgroup.tasks[0].days_remaining().count()));
+		fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), BarGroup::overdue_bar_width, this->h(), get_bar_color(this->taskgroup.furthest_due_date_task().days_remaining().count()));
 	}	
 	else if(use_overdue_position && !all_tasks_are_overdue){
 		for(std::int_least64_t i = this->taskgroup.tasks.size()-1; i >= 0; i--){
 			const Task& task = this->taskgroup.tasks[i];
 			const float of_days_from_interval = std::clamp(float(task.days_remaining().count()) / float(this->days_from_interval.count()), 0.0f, 1.0f);
 			const float width = float(BarGroup::bar_max_width) * of_days_from_interval;
-			fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width + BarGroup::bar_xoffset, this->h(), get_bar_color(task.days_remaining().count()));
+			fl_draw_box(FL_FLAT_BOX, this->x(), this->y(), width + BarGroup::overdue_bar_width, this->h(), get_bar_color(task.days_remaining().count()));
 		}
 	}
 	else{
@@ -226,12 +234,13 @@ BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskG
 	
 	if(use_overdue_position){
 		xpos = parent->x();
-		if(this->taskgroup.furthest_due_date_task().days_remaining().count() > 0){
-			width = BarGroup::bar_xoffset + Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
-		}else{
-			width = BarGroup::bar_xoffset;
-		}
-	}else{
+		const bool has_only_overdue_tasks = this->taskgroup.furthest_due_date_task().days_remaining().count() <= 0;
+		if(has_only_overdue_tasks)
+			width = BarGroup::overdue_bar_width;
+		else
+			width = BarGroup::overdue_bar_width + Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
+	}
+	else{
 		xpos = parent->x() + BarGroup::bar_xoffset;
 		width = Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
 	}

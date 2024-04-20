@@ -50,6 +50,7 @@ class BarGroup : public Fl_Group{
 	static constexpr int width = 1400;
 	static constexpr int height = 700;
 	static constexpr int bar_xoffset = 50;
+	static constexpr int overdue_bar_width = bar_xoffset;
 	static constexpr int bar_max_width = width - 2*bar_xoffset;
 	
 	protected:
