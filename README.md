@@ -1,3 +1,4 @@
+![](https://github.com/FriedHamCheese/WorkTable/blob/code-doc/doc/readme.png)
 # What's WorkTable?
 WorkTable is a simple assignment list program which uses bars with different length and colors to represent different due dates. The is in C++ with FLTK as UI library.
 # What makes it different / Features
