@@ -2,6 +2,4 @@
 *.o
 *.exe
 user_fltk_flags
-user_fltk_flags
 /doc/html
-/doc/latex
