@@ -1,0 +1,36 @@
+/**
+
+\page building Building WorkTable
+
+# Prerequisites
++ A compiler which supports C++17
++ Make
++ A built FLTK codebase and its prerequisites.
+
+# Building FLTK
+Follow the official building procedures from [FLTK documentation](https://www.fltk.org/doc-1.3/intro.html).
+
+# Building WorkTable
+1. Download the source code of the project and extract it to where you would like. Navigate to the extracted directory. We will refer to this directory as "project directory".
+2. In the project directory, copy "user_fltk_flags - template" and rename it as "user_fltk_flags". In the FLTK directory you have successfully built, run
+\code
+./fltk-config --cxxflags
+./fltk-config --ldflags
+\endcode
+This would output something like  
+\code
+-I/mingw64/include -march=nocona -msahf -mtune=generic -pipe -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-strong -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 ; from --cxxflags
+
+-L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lole32 -lcomctl32 -lws2_32 ; from --ldflags
+\endcode
+    You would need to copy these to FLTK_CXXFLAGS and FLTK_LDFLAGS in user_fltk_flags respectively. Which would look like this:
+    \code
+FLTK_CXXFLAGS := -I/mingw64/include -march=nocona -msahf -mtune=generic -pipe -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-strong -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+FLTK_LDFLAGS := -L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lole32 -lcomctl32 -lws2_32
+    \endcode
+
+3. Run Make with no arguments in the project directory.
+4. The executable is located in bin as build.exe. Since the compiler and linker is called from the project directory rather than the ./src directory, you should not enter ./bin and run build.exe directly, rather you would run it as ./bin/build.exe from the project directory.
+
+And with that, the main window should pop up with tasks and groups.
+*/
