@@ -2,6 +2,7 @@
 \page proj_overview Overview of Structure
 
 # Widget modules, most high-level to least
+  \image html module_graph.png width=960px
 - main.cpp: Initializes FLTK runtime loop, creates and shows the main window (MainWindow), and provides last try-catches for uncaught throws and exceptions to prevent crashes without any information.
 - MainWindow: Provides most of the upfront buttons; owns windows which manipulates data of tasks and groups; owns BarGroup, the container and delegator of bars; and passes requests between BarGroup to TaskGroupWindow and TaskPropertiesWindow in both ways.
 - TaskPropertiesWindow: A modal window (prioritised window) for adding, deleting a single task, and editing properties of a single task.
