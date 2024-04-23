@@ -3,7 +3,7 @@
 \page building Building WorkTable
 
 # Prerequisites
-+ A compiler which supports C++17
++ A compiler which supports C++20
 + Make
 + A built FLTK codebase and its prerequisites.
 
