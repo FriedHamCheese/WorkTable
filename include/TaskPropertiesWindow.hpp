@@ -60,12 +60,12 @@ class TaskPropertiesWindow : public Fl_Window{
 	*/
 	void add_task();
 	/**
-	Send a task deletion request at this->modifying_item_index to this->main_window.
+	Send a task deletion request for the task at this->modifying_item_index to this->main_window.
 	If this->modifying_item_index is invalid, a warning window pops up.
 	*/
 	void delete_task();	
 	/**
-	Sends a task edit request for a task at this->modifying_item_index to this->main_window after validating the task name and due date field.
+	Sends a task edit request for the task at this->modifying_item_index to this->main_window after validating the task name and due date field.
 	If either is invalid, warn with this->warning_message.
 	*/
 	void modify_task();

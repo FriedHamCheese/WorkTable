@@ -11,6 +11,10 @@
 
 class MainWindow;
 
+/**
+A window for editing and deleting task groups.
+This is a modal window, meaning it discards any interactions to other windows other than itself when it's shown.
+*/
 class TaskGroupWindow : public Fl_Window{
 	private:
 	Fl_Box task_name_label;
@@ -18,30 +22,45 @@ class TaskGroupWindow : public Fl_Window{
 	Fl_Button delete_button;
 	Fl_Button save_button;
 	
+	///conventionally this will be obtained by calling Fl_Widget::parent(), 
+	///but this window cannot be a child of another window because we need this to be a separate window
+	///but we still need a way for interfacing with the main window, hence the pointer
 	MainWindow* const main_window;
+	
+	/**
+	This stores the index of the Bar in BarGroup::bars which requested the window to be shown.
+	The index is provided when a request is passed from BarGroup.
+	*/
 	int modifying_item_index;
 	
 	public:
 	TaskGroupWindow(const int width, const int height, MainWindow* const main_window);
-
+	
+	///Sets the window label as the provided group_name, and loads group_name into this->task_name_dialog.
 	void store_task(const std::string& group_name, const int item_index);
 	
+	///Calls this->modify_task(). This is invoked from TaskGroupWindow::save_button_callback().
 	void save_button_pressed();
+	///Calls this->delete_task() and hides the window. This is invoked from TaskGroupWindow::delete_button_callback().
 	void delete_button_pressed();
 	
 	static void save_button_callback(Fl_Widget* const self, void* const data);
 	static void delete_button_callback(Fl_Widget* const self, void* const data);
 
-	static constexpr int width = 300;
-	static constexpr int height = 110;
+	static constexpr int width = 300;	///< Value for width argument for the caller constructing this object
+	static constexpr int height = 110;	///< Value for height argument for the caller constructing this object
 
 	private:
+	/**
+	Requests this->main_window to delete a Bar at this->modifying_item_index which represents a task group.
+	If the index is invalid, a window would pop up notifying the error.
+	*/
 	void delete_task();	
+	/**
+	Requests this->main_window to edit the name of a Bar at this->modifying_item_index which represents a task group.
+	If the group name or index is invalid, a window would pop up notifying the error.	
+	*/
 	void modify_task();
-	
-	//conventionally this will be obtained by calling Fl_Widget::parent(), 
-	//but this window cannot be a child of another window because we need this to be a separate window
-	//but we still need a way for interfacing with the main window, hence the pointer
 	
 	static constexpr int button_width = width / 2;
 	static constexpr int button_height = 35;	
