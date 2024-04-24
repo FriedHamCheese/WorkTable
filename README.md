@@ -86,7 +86,7 @@ Try dragging a task on top of another. A group is made. You can also merge a tas
 Clicking a group will enter "group view", where all the bars are only a single task. So before we clicked and entered the group, we were viewing in "root view", where bars can either be a group or a single task. A button with a straight arrow pointing to the left is now active, this indicates we are in group view and is how we return to root view by clicking it. 
 Group view interacts very similarly with root view, the only difference is you cannot merge tasks to get a group; but a box on the left would appear, dragging the task to the box would pop the task out of the group.
 
-![](https://github.com/FriedHamCheese/WorkTable/blob/code-doc/doc/pages/how_to_use/dragging_in_groupview.PNG)
+![](https://github.com/FriedHamCheese/WorkTable/blob/code-doc/doc/pages/how_to_use/dragging_in_groupview.png)
 
 ### Edit or delete a group
 To do so, you must be in root view. Right click the group, a window will appear. It is very similar to window of a task, except it doesn't have an input for a specific due date.
