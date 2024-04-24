@@ -56,9 +56,9 @@ class MainWindow : public Fl_Window{
 	///Passes task revert requests from MainWindow::discard_button_callback() to this->bar_group.	
 	void revert_to_tasks_from_file();
 
-	///Passes requests from MainWindow::zoomin_button_callback() to this->bar_group to narrow down (zoom in) the timescale.
+	///Passes requests from MainWindow::zoomin_button_callback() to this->bar_group to narrow down (zoom in) the timescale. This redraws MainWindow.
 	void zoomin_timescale();
-	///Passes requests from MainWindow::zoomout_button_callback() to this->bar_group to widen (zoom out) the timescale.	
+	///Passes requests from MainWindow::zoomout_button_callback() to this->bar_group to widen (zoom out) the timescale.	This redraws MainWindow.
 	void zoomout_timescale();	
 	
 	///Activates this->task_group_button when requested by this->bar_group.
