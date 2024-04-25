@@ -27,6 +27,8 @@ class MainWindow : public Fl_Window{
 	///Passes the request from this->task_properties_window or this->task_group_window to this->bar_group.	
 	bool delete_bar(const int item_index); 
 	///Passes task edit requests from this->task_properties_window to this->bar_group.
+	///
+	///May rethrow std::invalid_argument if the provided index refers to an invalid task.
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 	///Passes task group name edit requests from this->task_group_window to this->bar_group.
 	bool modify_taskgroup_name(const char* const group_name, const int item_index);
@@ -50,16 +52,26 @@ class MainWindow : public Fl_Window{
 	void show_root_group_box();
 	
 	///Passes requests from this->taskgroup_button to this->bar_group to return to root view. This deactivates this->task_group_button as well.
+	///
+	///This function catches throws and shows an error window if caught.
 	void show_taskgroups();
 	
 	///Passes save requests from MainWindow::save_button_callback() to this->bar_group.
+	///
+	///This function catches throws and shows an error window if caught.
 	void save_tasks_to_file();
 	///Passes task revert requests from MainWindow::discard_button_callback() to this->bar_group.	
+	///
+	///This function catches throws and shows an error window if caught.	
 	void revert_to_tasks_from_file();
 
 	///Passes requests from MainWindow::zoomin_button_callback() to this->bar_group to narrow down (zoom in) the timescale. This redraws MainWindow.
+	///
+	///This function catches throws and shows an error window if caught.	
 	void zoomin_timescale();
 	///Passes requests from MainWindow::zoomout_button_callback() to this->bar_group to widen (zoom out) the timescale.	This redraws MainWindow.
+	///
+	///This function catches throws and shows an error window if caught.	
 	void zoomout_timescale();	
 	
 	///Activates this->task_group_button when requested by this->bar_group.

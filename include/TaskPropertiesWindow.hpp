@@ -36,6 +36,7 @@ class TaskPropertiesWindow : public Fl_Window{
 	
 	/**
 	This either calls this->add_task() or this->modify_task() depending if this->current_mode is TaskPropertiesWindow::Mode::CreateNewTask or TaskPropertiesWindow::Mode::EditTask respectively.
+	
 	If this->current_mode is not either, a warning window pops up.
 	*/
 	void save_button_pressed();
@@ -56,17 +57,20 @@ class TaskPropertiesWindow : public Fl_Window{
 	private:
 	/**
 	Send a task add request to this->main_window after validating the task name and due date field.
-	If either is invalid, warn with this->warning_message.
+	
+	If this->modifying_item_index is invalid or a throw was caught, a warning window would pop up.
 	*/
 	void add_task();
 	/**
 	Send a task deletion request for the task at this->modifying_item_index to this->main_window.
-	If this->modifying_item_index is invalid, a warning window pops up.
+	
+	If this->modifying_item_index is invalid or a throw was caught, a warning window would pop up.
 	*/
 	void delete_task();	
 	/**
 	Sends a task edit request for the task at this->modifying_item_index to this->main_window after validating the task name and due date field.
 	If either is invalid, warn with this->warning_message.
+	If throw was caught, a warning window would pop up.	
 	*/
 	void modify_task();
 	

@@ -53,12 +53,12 @@ class TaskGroupWindow : public Fl_Window{
 	private:
 	/**
 	Requests this->main_window to delete a Bar at this->modifying_item_index which represents a task group.
-	If the index is invalid, a window would pop up notifying the error.
+	If the index is invalid or a throw was caught, a window would pop up notifying the error.
 	*/
 	void delete_group();	
 	/**
 	Requests this->main_window to edit the name of a Bar at this->modifying_item_index which represents a task group.
-	If the group name or index is invalid, a window would pop up notifying the error.	
+	If the group name or index is invalid or a throw was caught, a window would pop up notifying the error.	
 	*/
 	void modify_group_name();
 	
