@@ -23,28 +23,39 @@ A container and drawing area for bars. It is responsible for:
 class BarGroup : public Fl_Group{
 	public:
 	///Initialises its members, but most importantly: constructs the bars from the task file.
+	///
+	///Catches exceptions and display an error window when error occurs while loading tasks to bars.
 	BarGroup(const int xpos, const int ypos, const int width, const int height);
 	
 	///Check if there are any unsaved changes when the program is exiting. If there is, show a window for the user to save.
+	///
+	///Catches exceptions and display an error window if errors occurred while displaying an option window or saving tasks to file.
 	virtual ~BarGroup();
 	
 	///Constucts a new Bar which represent the provided task, readjust vertical scale, and redraw BarGroup.
 	void add_task(const Task& task);
 	///Deletes the Bar at given index, readjust vertical scale, and redraw BarGroup. 
 	///The Bar may either represent a task or a group.
-	///Returns false if the index refers to an invalid Bar, else true.
+	///\returns false if the index refers to an invalid Bar or the index is invalid for this->paged_taskgroups if in group view, else true.
 	bool delete_bar(const int item_index);
 	///Request the Bar at the provided index to change its task properties accordingly. This redraws BarGroup.
+	///
+	///Throws std::invalid_argument if the index refers to an invalid Bar.
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 	///Request the Bar at the provided index to change its group name. This redraws BarGroup.
+	///\returns false if the index refers to an invalid Bar.
 	bool modify_group(const char* const group_name, const int item_index);
 
 	///Passes request for showing a window for editing task, from Bar to MainWindow.
+	///\returns false if the Bar is not a member of BarGroup.
 	bool request_window_for_editing_task(const Bar* const bar);
 	///Passes request for showing a window for editing group, from a Bar to MainWindow.	
+	///\returns false if the Bar is not a member of BarGroup.	
 	bool request_window_for_editing_group(const Bar* const bar);
 	
 	///Save the bars in root view to this->paged_taskgroups and shift from root view to group view.
+	///
+	///Throws std::invalid_argument if the pointer is not a member of BarGroup.
 	///This redraws BarGroup.
 	void display_tasks_in_task_group(const Bar* const bar);
 	///Shift from group view back to root view. This redraws BarGroup.
@@ -55,9 +66,12 @@ class BarGroup : public Fl_Group{
 	void save_tasks_to_file();
 	///Reverts the current state of all tasks and groups back to of the task file.
 	///The function is able to be called while in root view and group view as well.	
+	///
+	///May throw std::ios_base::failure for unspecified IO error or std::runtime_error when the file cannot be opened.
 	void revert_to_tasks_from_file();
 	
 	///Called by its bars when the user released a mouse button after dragging the bar to an area which is not the same bar.
+	///
 	///This function will either: move the task out of the task group and hide the root group box of MainWindow, merge the bar with another bar, or do nothing if the bar was released elsewhere.
 	void handle_bar_mouse_button_release(const Bar* const clicked_bar);
 	///This function will request MainWindow to show the root group box if the current view mode is in group view.
@@ -78,10 +92,10 @@ class BarGroup : public Fl_Group{
 	bool has_unsaved_changes_to_tasks() const;
 
 	///Attempts to narrow down the timescale, if the timescale is already the narrowest, no visual changes will be made. 
-	///Returns the current timescale after being narrowed down.
+	///\returns the current timescale after being narrowed down.
 	Timescale zoomin_timescale();
 	///Attempts to widen the timescale, if the timescale is already the widest, no visual changes will be made. 
-	///Returns the current timescale after being widen.	
+	///\returns the current timescale after being widen.	
 	Timescale zoomout_timescale();
 	
 	static constexpr int width = 1400;	///< Value for width argument for the caller constructing this object.
@@ -89,8 +103,8 @@ class BarGroup : public Fl_Group{
 	static constexpr int bar_xoffset = 50;	///< Horizontal offset for bars which do not have overdue tasks.
 	/**
 	Width for bars which do have overdue tasks or is one. 
-	If the Bar is a group with overdue and non-overdue tasks intermixed, calculate its regular width and add this to the width.
-	If the Bar is a single overdued task, use this as its width. Else use the regular calculated width at non-overdue xoffset.
+	- If the Bar is a group with overdue and non-overdue tasks intermixed, calculate its regular width and add this to the width.
+	- If the Bar is a single overdued task, use this as its width. Else use the regular calculated width at non-overdue xoffset.
 	*/
 	static constexpr int overdue_bar_width = bar_xoffset; 
 	/**
@@ -106,6 +120,8 @@ class BarGroup : public Fl_Group{
 		
 	private:
 	///Constucts bars which represent tasks and groups in task file.
+	///
+	///May throw std::ios_base::failure for unspecified IO error or std::runtime_error when the file cannot be opened.	
 	void load_tasks_to_bars();
 	
 	/**
@@ -132,6 +148,8 @@ class BarGroup : public Fl_Group{
 	/**
 	Recalculates the date timescale ahead from today, changes this->interval_date_label, and requests its bars to adjust its widths. This redraws BarGroup.
 	If the timescale requested is the same of what BarGroup has, it does nothing.
+	
+	Catches a std::invalid_argument throw from invalid timescale enum and notifies by displaying a window.
 	\returns The Timescale which BarGroup adjusted to.
 	*/
 	Timescale change_timescale(const Timescale timescale);
