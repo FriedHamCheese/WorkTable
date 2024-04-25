@@ -65,7 +65,7 @@ class Bar : public Fl_Button{
 	void update_group_name(const char* const group_name);
 	///Update the properties of its task, then its width, color, and label. 
 	///This is from a chain of requests where the task edit window, which the Bar has requested if it represents a single task, requests the Bar to modify its contents.
-	///If somehow this is called and the Bar represents a group, it modifies the first task if it represents a group.
+	///If somehow this is called and the Bar represents a group, it modifies the first task.
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	/**
 	Updates both xpos and width of the Bar according to its Bar_TaskGroup.
@@ -121,8 +121,12 @@ class Bar : public Fl_Button{
 	void update_color_from_days_remaining() noexcept;
 	
 	///Will either request a window for a task or shift to group view, depending on if the Bar represent a task or a group respectively.
+	///
+	///This function catches throws from requesting a window for editing a task or requesting shifting to group view, and will display a window if an error occurred.	
 	void left_mouse_click_callback();
 	///Will either request a window for a task or for a group, depending on if the Bar represent a task or a group respectively.
+	///
+	///This function catches throws from requesting windows and will display a window if an error occurred.
 	void right_mouse_click_callback();
 	
 	///3/4 of the height would be the actual height, leave the remaining for spacing between the bars.
