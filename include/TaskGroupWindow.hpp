@@ -37,7 +37,7 @@ class TaskGroupWindow : public Fl_Window{
 	TaskGroupWindow(const int width, const int height, MainWindow* const main_window);
 	
 	///Sets the window label as the provided group_name, and loads group_name into this->task_name_dialog.
-	void store_task(const std::string& group_name, const int item_index);
+	void store_group(const std::string& group_name, const int item_index);
 	
 	///Calls this->modify_task(). This is invoked from TaskGroupWindow::save_button_callback().
 	void save_button_pressed();
@@ -55,12 +55,12 @@ class TaskGroupWindow : public Fl_Window{
 	Requests this->main_window to delete a Bar at this->modifying_item_index which represents a task group.
 	If the index is invalid, a window would pop up notifying the error.
 	*/
-	void delete_task();	
+	void delete_group();	
 	/**
 	Requests this->main_window to edit the name of a Bar at this->modifying_item_index which represents a task group.
 	If the group name or index is invalid, a window would pop up notifying the error.	
 	*/
-	void modify_task();
+	void modify_group_name();
 	
 	static constexpr int button_width = width / 2;
 	static constexpr int button_height = 35;	

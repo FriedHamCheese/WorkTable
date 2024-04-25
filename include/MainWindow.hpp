@@ -23,12 +23,13 @@ class MainWindow : public Fl_Window{
 	
 	///Passes add task requests from this->task_properties_window to this->bar_group.
 	void add_task(const Task& task); 	
-	///Passes task or task group deletion requests from this->task_properties_window or this->task_group_window to this->bar_group.	
-	bool delete_task(const int item_index); 
+	///Passes deletion requests of a Bar at given index which represents a task or a group. 
+	///Passes the request from this->task_properties_window or this->task_group_window to this->bar_group.	
+	bool delete_bar(const int item_index); 
 	///Passes task edit requests from this->task_properties_window to this->bar_group.
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 	///Passes task group name edit requests from this->task_group_window to this->bar_group.
-	void modify_taskgroup_name(const char* const group_name, const int item_index);
+	bool modify_taskgroup_name(const char* const group_name, const int item_index);
 	
 	///Passes requests from this->new_task_button to show this->task_properties_window for creating a new task.
 	void show_window_for_creating_new_task();

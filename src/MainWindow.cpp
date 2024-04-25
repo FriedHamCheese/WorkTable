@@ -43,7 +43,7 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 		MainWindow::button_width, MainWindow::button_height, "+"
 	),	
 	timescale_text_box(
-		zoomin_button.x() - MainWindow::timescale_text_box_width - 10, 
+		xpos_left_of(zoomin_button.x(), MainWindow::timescale_text_box_width) - 10, 
 		ypos_below(bar_group),
 		MainWindow::timescale_text_box_width, 
 		MainWindow::timescale_text_box_height
@@ -90,11 +90,18 @@ MainWindow::MainWindow(const int xpos, const int ypos, const int width, const in
 	this->root_group_box.labelfont(FL_HELVETICA_BOLD);		
 	this->root_group_box.hide();
 	
+	//We start in root view, so this button should be deactivated.
 	this->taskgroup_button.deactivate();
 	
+	//Setting the two windows which it owns, but not the parent of, as modal windows.
+	//Which are windows that only allows interactions with themselves when they are shown, 
+	//i.e., if the window is being shown, you can't click on anything in other windows other that it.
+	//If two modal windows are shown, the latter would recieve interactions, but we only show one at a time.
 	this->task_properties_window.set_modal();		
 	this->taskgroup_window.set_modal();		
 	
+	//For some reason, manual this->add() must be called in order to register widgets as its children.
+	//This only happens in this window for some reason.
 	this->end();
 	this->add(this->bar_group);
 	this->add(this->new_task_button);
@@ -114,8 +121,8 @@ void MainWindow::add_task(const Task& task){
 	this->bar_group.add_task(task);	
 }
 
-bool MainWindow::delete_task(const int item_index){
-	return this->bar_group.delete_task(item_index);
+bool MainWindow::delete_bar(const int item_index){
+	return this->bar_group.delete_bar(item_index);
 }
 
 void MainWindow::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
@@ -124,8 +131,8 @@ void MainWindow::modify_task(const char* const task_name, const std::chrono::yea
 	}catch(const std::invalid_argument& invalid_item_index) {throw;}
 }
 
-void MainWindow::modify_taskgroup_name(const char* const group_name, const int item_index){
-	this->bar_group.modify_group(group_name, item_index);
+bool MainWindow::modify_taskgroup_name(const char* const group_name, const int item_index){
+	return this->bar_group.modify_group(group_name, item_index);
 }
 
 void MainWindow::show_taskgroups(){
@@ -160,7 +167,7 @@ void MainWindow::show_window_for_editing_task(const Task& task_properties, const
 }
 
 void MainWindow::show_window_for_editing_group(const std::string& group_name, const int item_index){
-	this->taskgroup_window.store_task(group_name, item_index);
+	this->taskgroup_window.store_group(group_name, item_index);
 	this->taskgroup_window.show();
 }
 

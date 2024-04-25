@@ -31,12 +31,13 @@ class BarGroup : public Fl_Group{
 	///Constucts a new Bar which represent the provided task, readjust vertical scale, and redraw BarGroup.
 	void add_task(const Task& task);
 	///Deletes the Bar at given index, readjust vertical scale, and redraw BarGroup. 
+	///The Bar may either represent a task or a group.
 	///Returns false if the index refers to an invalid Bar, else true.
-	bool delete_task(const int item_index);
+	bool delete_bar(const int item_index);
 	///Request the Bar at the provided index to change its task properties accordingly. This redraws BarGroup.
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 	///Request the Bar at the provided index to change its group name. This redraws BarGroup.
-	void modify_group(const char* const group_name, const int item_index);
+	bool modify_group(const char* const group_name, const int item_index);
 
 	///Passes request for showing a window for editing task, from Bar to MainWindow.
 	bool request_window_for_editing_task(const Bar* const bar);

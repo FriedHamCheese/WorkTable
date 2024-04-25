@@ -39,10 +39,10 @@ class Bar_TaskGroup : public TaskGroup{
 	///The group name is of the object being called, this->name.
 	void merge_taskgroup(const TaskGroup& other);
 	///Deletes the task at the given index. Returns true if the index is valid, else false and does nothing to the container.
-	void delete_task_at(const std::size_t index);
+	bool delete_task_at(const std::size_t index);
 	///Sets the value of Task at given index to of the provided argument.
 	///Returns true if index is valid, else false and does nothing to the container.
-	void set_task_at(const std::size_t index, const Task& other);
+	bool set_task_at(const std::size_t index, const Task& other);
 	
 	///Equivalent to this->tasks[index].
 	const Task& operator[] (const std::size_t index) const{return this->tasks[index];}

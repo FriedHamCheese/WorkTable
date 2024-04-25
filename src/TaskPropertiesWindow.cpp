@@ -157,7 +157,7 @@ void TaskPropertiesWindow::add_task(){
 
 void TaskPropertiesWindow::delete_task(){
 	try{
-		if(!main_window->delete_task(modifying_item_index)){
+		if(!main_window->delete_bar(modifying_item_index)){
 			fl_alert("Failed to delete task."
 					"\nTaskPropertiesWindow::delete_task(): Invalid deletion index.");
 		}
@@ -195,7 +195,7 @@ void TaskPropertiesWindow::modify_task(){
 			this->main_window->modify_task(task_name_dialog.value(), new_due_date, modifying_item_index);
 			this->hide();
 		}
-		catch(const std::invalid_argument& invalid_ymd_str){
+		catch(const std::invalid_argument& invalid_index){
 			fl_alert("Failed to save changes."
 					"\nTaskPropertiesWindow::modify_task(): Invalid task index.");
 		}

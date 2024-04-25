@@ -296,14 +296,14 @@ void Bar_TaskGroup::merge_taskgroup(const TaskGroup& other){
 	this->sort_and_reassign();
 }
 
-void Bar_TaskGroup::set_task_at(const std::size_t index, const Task& other){
+bool Bar_TaskGroup::set_task_at(const std::size_t index, const Task& other){
 	if(index >= this->tasks.size()) return false;
 	this->tasks[index] = other;
 	this->sort_and_reassign();
 	return true;
 }
 
-void Bar_TaskGroup::delete_task_at(const std::size_t index){
+bool Bar_TaskGroup::delete_task_at(const std::size_t index){
 	if(index >= this->tasks.size()) return false;
 	
 	const bool is_nearest_due_date_task = index == 0;
