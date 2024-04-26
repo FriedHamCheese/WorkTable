@@ -1,0 +1,51 @@
+/**
+\mainpage Read this before coding!
+
+# Hierarchy of Widgets
+- main.cpp: Constructs and shows MainWindow, initialises FLTK runtime loop, and is the final try-catch layer for any uncaught throws. The try-catch is meant for reporting errors, not prevent crashing.
+- MainWindow: The main window of the program. Owns BarGroup, most of the buttons, TaskPropertiesWindow and TaskGroupWindow. Doesn't do much by itself, mostly just passes requests.
+- TaskPropertiesWindow and TaskGroupWindow: A window for creating, editing or deleting a single task or a group respectively. Sends requests to, or recieve from MainWindow.
+- BarGroup: A container of bars (Bar) and passes request from and to MainWindow, and requests its bars and MainWindow to act according to the timescale it keeps track of.
+- Bar: Represents either a task or a group. Change its color, width, and position according to what it represents and according to the request from BarGroup.
+
+# Coding conventions
+## Widget Interactions and Passing Requests
+When a child widget needs to do something, it calls a public method of its parents and its parents would decide what to do with the request. 
+Its parent might also pass it up to its parents as well, until the request is properly fulfilled.
+
+Similarly, when the parent of parent needs to do something, it calls a public method of its child, then the child parent decides what to do with the request, or perhaps pass it to its child.
+
+We use Fl_Widget::parent() to acquire the pointer of the child's parent, cast it to the exact type of the parent,
+then call the public method. For parent to child, we simply call the child's public method.
+
+## Exceptions
+People often discuss about if you should or should not use one, but no one mentions how to use them. So here is my somewhat ok way of using exceptions.
+- We let std::bad_alloc and std::length_error silently pass up to top-level function.
+  Simply because most of STL containers uses it.
+
+- If an exception may be thrown from a function being called, 
+  try guarding the function specifically and rethrow. This makes the exception way easier to be seen, making documentation easier.
+
+- Pass it up (or rethrow) until it is ambiguous.
+  For example, a std::runtime_error from MainWindow's constructor is really ambiguous.
+  So perhaps try catching it in BarGroup's load_task_to_bars(). As that function does call a function which opens and reads the task file.
+   
+  Handling exceptions early makes the function more difficult to be used, as the caller may want to do things differently.
+  After all, the caller probably knows more than the callee of what is going on and how it should respond.
+  
+- Catch everything in the top function.
+  If either: the function is the most abstract, there is no other way to pass exceptions up, or reaches ambiguity if passed up; catch
+  - the exceptions which are documented to be thrown
+  - the base std::exception for any uncaughts.
+  - and the ... (catch(...)) for any uncaught throws.
+  
+  Good examples of this are TaskPropertiesWindow::add_task() and Bar::left_mouse_click_callback().
+  Where if they don't catch everything, int main() would be the one catching it, leading to ambiguity of what just happened,
+  and most importantly: the program terminating. Because all int main() knows is it's just an exception from somewhere.
+  Meanwhile the former two knows what action causes it and doesn't crash.
+  
+There are inconsistent additional catches of std::bad_alloc and std::length_error, as I couldn't fully decide if I should keep it or not.
+They can provide better explanation when something goes wrong, but memory errors seems rare. Hence the inconsistency of the newer catches not having those.
+  
+That's all I have to say. Happy coding!
+*/

@@ -121,7 +121,7 @@ void BarGroup::add_task(const Task& task){
 	this->redraw();
 }
 
-bool BarGroup::delete_task(const int item_index){	
+bool BarGroup::delete_bar(const int item_index){	
 	if(this->bars.size() <= std::abs(item_index))
 		return false;
 	
@@ -145,6 +145,9 @@ bool BarGroup::delete_task(const int item_index){
 }
 
 void BarGroup::modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index){
+	const bool out_of_bounds_index = (item_index < 0) || (std::llabs(item_index) >= this->bars.size());
+	if(out_of_bounds_index)
+		throw std::invalid_argument("BarGroup::modify_task(): invalid task index.");
 	bars[item_index]->update_task(task_name, due_date, this->get_days_from_interval(), this->x());		
 	
 	if(this->displaying_a_taskgroup()){
@@ -155,11 +158,15 @@ void BarGroup::modify_task(const char* const task_name, const std::chrono::year_
 	this->redraw();
 }
 
-void BarGroup::modify_group(const char* const group_name, const int item_index){
+bool BarGroup::modify_group(const char* const group_name, const int item_index){
+	const bool out_of_bounds_index = (item_index < 0) || (std::llabs(item_index) >= this->bars.size());
+	if(out_of_bounds_index) return false;
+	
 	bars[item_index]->update_group_name(group_name);
 
 	this->unsaved_changes_made_to_tasks = true;
 	this->redraw();	
+	return true;
 }
 
 
@@ -281,7 +288,7 @@ void BarGroup::handle_bar_mouse_button_release(const Bar* const clicked_bar){
 	if(move_task_to_rootgroup){
 		this->paged_taskgroups.emplace_back(clicked_bar->get_taskgroup());
 		const int clicked_bar_index  = this->get_item_index(clicked_bar);
-		this->delete_task(clicked_bar_index);
+		this->delete_bar(clicked_bar_index);
 		this->redraw();
 		return;
 	}
@@ -293,7 +300,7 @@ void BarGroup::handle_bar_mouse_button_release(const Bar* const clicked_bar){
 			const bool mouse_button_released_in_taskgroup = Fl::event_inside(bar_at_rootgroup.get());
 			if(mouse_button_released_in_taskgroup){
 				bar_at_rootgroup->merge_taskgroup(clicked_bar->get_taskgroup());
-				this->delete_task(this->get_item_index(clicked_bar));
+				this->delete_bar(this->get_item_index(clicked_bar));
 				this->redraw();
 				break;
 			}

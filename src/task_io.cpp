@@ -80,6 +80,7 @@ namespace task_io_internal{
 	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
 													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&))
 	{
+		//this keeps all the TaskStrGroups fetched, which can either be a single task in TaskStrGroup or a multiple.
 		std::vector<TaskStrGroup> task_str_groups; 
 		task_str_groups.reserve(20);
 		
@@ -88,20 +89,37 @@ namespace task_io_internal{
 		bool fetching_group = false;
 		const std::size_t line_count = lines.size();
 		for(std::size_t line_i = 0; line_i < line_count; line_i++){
+			/*
+			There are 3 parts of the code:
+			1. Detect group definition (line which ends with {).
+			   If there is a group definition, move on from the current line to next.
+			2. If the line isn't a group end character, fetch the date and name of a task, 
+			   to fetching_taskstr_group which either can be fetching to a group or to an independent task.
+			3. If we either reached a group end character in this line or was fetching an independent task, or reached the last line:
+			   we save the fetching_taskstr_group to task_str_groups.
+			*/
 			const std::string& line = lines[line_i];
 			
+			//We check if this line has the { indicating the line is defining a new group,
+			//and if the code is already is fetching the tasks of previous group member
+			//if both are true, it means this line is defining another group inside of a group which we don't want.
+			//We simply warn the user and move on to the next line.
+			
+			//1.
 			const bool nested_group = (line.back() == '{') && fetching_group;
 			if(nested_group){
 				const std::string nested_group_name = line.substr(0, line.size() - 1);;
 				nested_group_callback(__FILE__, __LINE__, fetching_taskstr_group.group_name, nested_group_name);
 				continue;
 			}
+			
 			if(line.back() == '{'){
 				fetching_group = true;
 				fetching_taskstr_group.group_name = line.substr(0, line.size() - 1);
 				continue;
 			}
-
+			
+			//2.
 			if(line == "}") fetching_group = false;
 			else{
 				std::string date_str; date_str.reserve(10);
@@ -110,7 +128,7 @@ namespace task_io_internal{
 				const auto line_length = line.size();
 				auto date_str_end_index = line_length; //default
 				
-				for(decltype(line.size()) i = 0; i < line_length; ++i){
+				for(std::size_t i = 0; i < line_length; ++i){
 					if(line[i] == ','){
 						date_str_end_index = i;
 						break;
@@ -122,6 +140,7 @@ namespace task_io_internal{
 				fetching_taskstr_group.taskstrs.emplace_back(date_str, name_str);
 			}
 			
+			//3.
 			const bool last_line = line_i + 1 == line_count;
 			if(!fetching_group || last_line){
 				if(fetching_taskstr_group.taskstrs.size() > 0){
@@ -141,16 +160,14 @@ namespace task_io_internal{
 		taskgroups.reserve(taskstr_groups.size());
 		
 		const std::chrono::year_month_day current_date = get_current_ymd();
-		const std::size_t taskgroup_count = taskstr_groups.size();
 		
-		for(std::size_t taskgroup_i = 0; taskgroup_i < taskgroup_count; taskgroup_i++){
+		//A loop iterating over each TaskStrGroup to convert it to TaskGroup and appends it to the return vector.
+		for(const TaskStrGroup& current_taskstr_group : taskstr_groups){
 			TaskGroup fetching_taskgroup;
-			const TaskStrGroup& current_taskstr_group = taskstr_groups[taskgroup_i];
 			fetching_taskgroup.group_name = current_taskstr_group.group_name;
 			
-			const std::size_t task_count = current_taskstr_group.taskstrs.size();
-			for(std::size_t task_i = 0; task_i < task_count; task_i++){
-				const TaskStr& current_taskstr = current_taskstr_group.taskstrs[task_i];
+			//A loop iterating over each TaskStr in TaskStrGroup which converts it to Task and appends it to the TaskGroup.
+			for(const TaskStr& current_taskstr : current_taskstr_group.taskstrs){
 				try{
 					const std::chrono::year_month_day due_date = str_to_ymd(current_taskstr.due_date);
 					fetching_taskgroup.tasks.emplace_back(due_date, current_taskstr.name, current_date);
@@ -166,7 +183,7 @@ namespace task_io_internal{
 
 		return taskgroups;
 	}
-}
+}//namespace task_io_internal
 
 std::vector<TaskGroup> get_tasks(void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&)){
 	task_io_internal::file_buffer raw_file_data;
@@ -183,7 +200,6 @@ std::vector<TaskGroup> get_tasks(void(*nested_group_callback)(const char*, const
 }
 
 
-//returns string version of number with always 2 digits.
 std::string int_to_2char(const unsigned num){
 	const std::string num_str = std::to_string(num);
 	//anything less than 10 is written with only 1 number, so we put a 0 in the front.
@@ -232,8 +248,6 @@ std::string task_to_str(const Task& task){
 	return ymd_str + ", " + task.name();
 }
 
-
-//parse string in yyyy/(m)m/(d)d format, to std::chrono::year_month_day
 std::chrono::year_month_day str_to_ymd(const std::string& str){
 	const auto str_length = str.size();
 	std::string buffer; 

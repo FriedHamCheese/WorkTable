@@ -5,7 +5,8 @@
 
 int main(){
 	try{
-		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.4ish - group-gestures branch");
+		//If you ran into a stack overflow issue, change this to pointer.
+		MainWindow window(0, 0, MainWindow::width, MainWindow::height, "WorkTable 0.5.0");
 		window.show();
 		return Fl::run();
 	}
