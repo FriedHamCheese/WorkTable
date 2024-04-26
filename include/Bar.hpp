@@ -15,11 +15,11 @@ struct BarConstructorArgs;
 /**
 A variant of TaskGroup for Bar. It provides sorted tasks from nearest due date to furthest,
 ease of access to nearest and furthest due date tasks,
-and methods of mutation which guarantees sorted tasks.
+and methods for mutation which guarantee the tasks be in sorted order.
 
 \note When attempting to add or delete a task, or merge with another TaskGroup, one should use the methods provided in the class,
   in order to ensure the tasks are sorted.
-  If you just want to iterate over the tasks without mutating any, you can access the tasks directly like TaskGroup.
+  If you just want to iterate over the tasks without mutating the due dates or the order of the tasks, you can access the tasks directly like TaskGroup.
 */
 class Bar_TaskGroup : public TaskGroup{	
 	private:
@@ -29,6 +29,8 @@ class Bar_TaskGroup : public TaskGroup{
 	void sort_and_reassign();
 
 	public:
+	///Constructs the object from its base class, sort its task from nearest due date to furthest, 
+	///then assign this->nearest_due_date_task and this->furthest_due_date_task.
 	Bar_TaskGroup(const TaskGroup& taskgroup);
 	const Task& nearest_due_date_task() const {return _nearest_due_date_task;}
 	const Task& furthest_due_date_task() const {return _furthest_due_date_task;}
@@ -64,7 +66,7 @@ class Bar : public Fl_Button{
 	///Updates its group name. This does not affect the label of a Bar which represent a single task.
 	void update_group_name(const char* const group_name);
 	///Update the properties of its task, then its width, color, and label. 
-	///This is from a chain of requests where the task edit window, which the Bar has requested if it represents a single task, requests the Bar to modify its contents.
+	///This is from a chain of requests where the task edit window, which the Bar has requested if it represents a single task, requests the same Bar to modify its contents.
 	///If somehow this is called and the Bar represents a group, it modifies the first task.
 	void update_task(const char* const task_name, const std::chrono::year_month_day& due_date, const std::chrono::days& days_from_interval, const int parent_xpos);
 	/**
@@ -88,9 +90,9 @@ class Bar : public Fl_Button{
 	///Calculates the Bar's height, from the given height of a Bar with yspacing between the Bar below it included.
 	static int calc_height(const int height_with_yspacing) noexcept;
 	///Calculates the Bar's height from BarGroup's height and the bar count in BarGroup.
-	static int calc_height(const int timeline_height, const int task_count) noexcept;
+	static int calc_height(const int bargroup_height, const int bar_count) noexcept;
 	///Calculates the Bar's height with its spacing between other bars, with BarGroup's height and the bar count in BarGroup.
-	static int calc_height_with_yspacing(const int timeline_height, const int task_count) noexcept;
+	static int calc_height_with_yspacing(const int bargroup_height, const int bar_count) noexcept;
 	///Calculates the Bar's ypos from BarGroup's ypos, value for the height of a Bar with yspacing between the Bar below included, and the index of the Bar in BarGroup's container of bars.
 	static int calc_ypos(const int parent_ypos, const int height_with_yspacing, const int item_index) noexcept;
 	///Calculates width of the Bar, if days_remaining is not positive, the return value is clamped to 0 pixels.
@@ -101,8 +103,8 @@ class Bar : public Fl_Button{
 	///Overrides Fl_Button::draw() to draw multiple colors in same button.
 	void draw() override;
 	/**
-	Overrided to handle click, drag and release mouse controls.
-	- When clicked and released, or dragged and released in same Bar, it should pop up a window for editing a task or for a group.
+	Overrided to handle click, drag and release of mouse controls.
+	- When clicked and released, or clicked-dragged-released in same Bar, it should pop up a window for editing a task or for a group of the exact same Bar.
 	- When dragged, let BarGroup know.
 	- when dragged and released somewhere else, notify BarGroup.
 	*/

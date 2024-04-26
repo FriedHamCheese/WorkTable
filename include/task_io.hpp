@@ -14,7 +14,7 @@
 /**
 \file task_io.hpp
 A module for reading and writing to task file;
-as well as utilities for converting std::string to other types such as std::chrono::year_month_day.
+as well as utilities for converting types related to Task to std::string equivalent.
 */
 
 ///\todo might just make it task_io and put everything in, or remove this entirely in 0.6
@@ -45,26 +45,26 @@ namespace task_io_internal{
 	///May throw std::ios_base_failure for unknown I/O error, or std::runtime_error if the file could not be opened.
 	file_buffer get_raw_file(const std::string& filename);
 
-	///The callback for buffer_to_separated_lines. This gets called, pops up a window if a nested group is detected.
+	///The error callback for buffer_to_separated_lines. This gets called and pops up a window if a nested group is detected.
 	///\todo make callsite_filename and callsite_line be a single std::string.
 	void default_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
 										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name);
 	
-	///Separates lines from given buffer of characters. The newline character is the separator.
+	///Separates lines from the given buffer of characters. The newline character is the separator.
 	std::vector<std::string> buffer_to_separated_lines(const file_buffer& buffer);
 	/**
 	Parses raw lines to TaskStrGroup, its default callback will pop up a window if an instance of nested group is present in task file. 
 	
-	There are a few things that can go wrong and the behaviour are as follows:
+	There are a few things that can go wrong and the behaviour of the function are as follows:
 	- A task with invalid due date but valid format would pass through. This function only fetches the string, not convert.
-	- A task without the comma after due date would have no name, and possibly invalid due date because the due date would fetch to the end of the line.
+	- A task without the comma after due date would have no name, and highly would be an invalid due date because the due date string would be fetched to the end of the line.
 	- A task without the space after the comma would lose the first character of the task name.
 	
 	- A valid group without name would result in a valid group with no group name.
 	- If the function was not fetching for tasks in a group and the line is a single }, the line does nothing.
 	- A group without ending its scope (has no }) would result in every task after the group definition to be in the group.
-	- The function does not care if the end scope character matches. Once it reaches it, the function ends the fetching of tasks of a group.
-	- If the code already was fetching the group and the line defines another group, the code simply warns the nesting of a group, and move on to fetch tasks to the group before the line.
+	- The function does not care if the end scope character matches. Once it reaches one, the function ends the fetching of tasks of a group.
+	- If the code already was fetching for tasks of a group and the current line defines another group, the code simply warns the nesting of a group, and moves on to fetch tasks to the group before the line.
 	
 	We chose to display a window rather than throwing an exception, simply because it is a small error.
 	*/

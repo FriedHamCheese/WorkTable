@@ -29,8 +29,8 @@ class TaskPropertiesWindow : public Fl_Window{
 	Prepare itself for modifying or deleting an existing task by: changing its window title, 
 	loading the input fields with data from provided task argument, chaning button labels, 
 	and sets this->current_mode to TaskPropertiesWindow::Mode::EditTask.
-	param[in] task A task which is represented by a Bar in BarGroup.
-	param[in] item_index An index of the Bar in BarGroup::bars requesting this window for editing or deleting its task.
+	\param[in] task A task which is represented by a Bar in BarGroup.
+	\param[in] item_index An index of the Bar in BarGroup::bars requesting this window for editing or deleting its task.
 	*/
 	void store_task(const Task& task, const int item_index);
 	

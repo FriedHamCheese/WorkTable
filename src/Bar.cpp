@@ -126,13 +126,13 @@ int Bar::calc_height(const int height_with_yspacing) noexcept{
 	return std::floor(float(height_with_yspacing) * float(bar_height_ratio_with_spacing)); 
 }
 
-int Bar::calc_height(const int bar_group_height, const int task_count) noexcept{
-	const float height_per_bar = float(bar_group_height) / float(task_count);	
+int Bar::calc_height(const int bargroup_height, const int bar_count) noexcept{
+	const float height_per_bar = float(bargroup_height) / float(bar_count);	
 	return height_per_bar * bar_height_ratio_with_spacing;
 }
 
-int Bar::calc_height_with_yspacing(const int bar_group_height, const int task_count) noexcept{
-	const float height_per_bar = float(bar_group_height) / float(task_count);		
+int Bar::calc_height_with_yspacing(const int bargroup_height, const int bar_count) noexcept{
+	const float height_per_bar = float(bargroup_height) / float(bar_count);		
 	return int(height_per_bar);
 }
 
@@ -302,7 +302,7 @@ void Bar::right_mouse_click_callback(){
 
 
 BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskGroup& taskgroup, 
-										const int task_count, const int item_index)
+										const int bar_count, const int item_index)
 :	taskgroup(taskgroup)
 {
 	const bool use_overdue_position = this->taskgroup.nearest_due_date_task().days_remaining().count() < 1;
@@ -320,7 +320,7 @@ BarConstructorArgs::BarConstructorArgs(const BarGroup* const parent, const TaskG
 		width = Bar::calc_bar_width(this->taskgroup.furthest_due_date_task().days_remaining(), parent->get_days_from_interval());
 	}
 	
-	const int bar_height_with_yspacing = Bar::calc_height_with_yspacing(parent->h(), task_count);
+	const int bar_height_with_yspacing = Bar::calc_height_with_yspacing(parent->h(), bar_count);
 	ypos = Bar::calc_ypos(parent->y(), bar_height_with_yspacing, item_index);
 	
 	height = Bar::calc_height(bar_height_with_yspacing);

@@ -24,25 +24,27 @@ class MainWindow : public Fl_Window{
 	///Passes add task requests from this->task_properties_window to this->bar_group.
 	void add_task(const Task& task); 	
 	///Passes deletion requests of a Bar at given index which represents a task or a group. 
-	///Passes the request from this->task_properties_window or this->task_group_window to this->bar_group.	
+	///Passes the request from this->task_properties_window or this->task_group_window to this->bar_group.
+	///\return false if the given index refers to an invalid Bar.	
 	bool delete_bar(const int item_index); 
 	///Passes task edit requests from this->task_properties_window to this->bar_group.
 	///
 	///May rethrow std::invalid_argument if the provided index refers to an invalid task.
 	void modify_task(const char* const task_name, const std::chrono::year_month_day& due_date, const int item_index);
 	///Passes task group name edit requests from this->task_group_window to this->bar_group.
+	///\return false if the given index refers to an invalid Bar.
 	bool modify_taskgroup_name(const char* const group_name, const int item_index);
 	
 	///Passes requests from this->new_task_button to show this->task_properties_window for creating a new task.
 	void show_window_for_creating_new_task();
 	/**
-	Passes requests from this->bar_group to show this->task_properties_window for editing the task.
+	Passes requests from this->bar_group to show this->task_properties_window for editing or deleting the task.
 	\param[in] task_properties The Task object which the Bar requesting the window represents.
 	\param[in] item_index An index of the Bar in this->bar_group::bars which requested the window. 
 	*/
 	void show_window_for_editing_task(const Task& task_properties, const int item_index);
 	/**
-	Passes requests from this->bar_group to show this->task_group_window for editing the task group name.
+	Passes requests from this->bar_group to show this->task_group_window for editing or deleting task group.
 	\param[in] group_name The name of the task group which the Bar requesting the window represents.
 	\param[in] item_index An index of the Bar in this->bar_group::bars which requested the window. 
 	*/	
