@@ -13,6 +13,7 @@ WorkTable is a simple assignment list program which uses bars with different len
 + A compiler which supports C++20
 + Make
 + A built FLTK codebase and its prerequisites.
++ Doxygen (optional, documentation for developers)
 
 ## Building FLTK
 Follow the official building procedures from [FLTK documentation](https://www.fltk.org/doc-1.3/intro.html).
@@ -36,6 +37,9 @@ FLTK_LDFLAGS := -L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lo
 ```
 4. Run Make with no specific target in the project directory.
 5. The executable is located in bin as build.exe. Since the compiler and linker is called from the project directory rather than the ./src directory, you should not enter ./bin and run build.exe directly, rather you would run it as ./bin/build.exe from the project directory.
+6. (Optional) Developer documentation in html Doxygen.
+   Navigate to the doc folder and run `Doxygen docconf` to generate the offline html documentation.
+   The landing page of the documentation is the index.html.
 
 And with that, a window and a warning dialog should pop up as a first boot greet!
 
@@ -90,6 +94,7 @@ Group view interacts very similarly with root view, the only difference is you c
 
 ### Edit or delete a group
 To do so, you must be in root view. Right click the group, a window will appear. It is very similar to window of a task, except it doesn't have an input for a specific due date.
+
 **Deleting the group means deleting the tasks in it as well.**
 
 ![](https://github.com/FriedHamCheese/WorkTable/blob/code-doc/doc/pages/how_to_use/taskgroupwin.PNG)
