@@ -21,7 +21,7 @@ Follow the official building procedures from [FLTK documentation](https://www.fl
 ## Building WorkTable
 1. Download the source code of the project and extract it to where you would like. Navigate to the extracted directory. We will refer to this directory as "project directory".
 2. In the project directory, copy "user_fltk_flags - template" and rename it as "user_fltk_flags".
-  In the FLTK directory you have successfully built (or in the project directory if FLTK is installed to your environment), run
+  In the FLTK directory you have successfully built (or in the project directory if FLTK is installed to your environment. If so, don't type the preceding ./), run
 ```
 ./fltk-config --cxxflags
 ./fltk-config --ldflags
