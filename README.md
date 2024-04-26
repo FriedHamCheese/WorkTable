@@ -20,7 +20,8 @@ Follow the official building procedures from [FLTK documentation](https://www.fl
 
 ## Building WorkTable
 1. Download the source code of the project and extract it to where you would like. Navigate to the extracted directory. We will refer to this directory as "project directory".
-2. In the project directory, copy "user_fltk_flags - template" and rename it as "user_fltk_flags". In the FLTK directory you have successfully built, run
+2. In the project directory, copy "user_fltk_flags - template" and rename it as "user_fltk_flags".
+  In the FLTK directory you have successfully built (or in the project directory if FLTK is installed to your environment), run
 ```
 ./fltk-config --cxxflags
 ./fltk-config --ldflags
@@ -39,9 +40,9 @@ FLTK_LDFLAGS := -L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lo
 5. The executable is located in bin as build.exe. Since the compiler and linker is called from the project directory rather than the ./src directory, you should not enter ./bin and run build.exe directly, rather you would run it as ./bin/build.exe from the project directory.
 6. (Optional) Developer documentation in html Doxygen.
    Navigate to the doc folder and run `Doxygen docconf` to generate the offline html documentation.
-   The landing page of the documentation is the index.html.
+   The landing page of the documentation is in ./doc/html/index.html.
 
-And with that, a window and a warning dialog should pop up as a first boot greet!
+And with that, a warning dialog should pop up as a first boot greet!
 
 
 # How to use WorkTable
