@@ -77,6 +77,27 @@ namespace task_io_internal{
 		fl_alert(msg.c_str());
 	}
 
+	
+	TaskStr line_to_TaskStr(const std::string& line){
+		std::string date_str; date_str.reserve(10);
+		std::string name_str; name_str.reserve(20);
+		
+		const auto line_length = line.size();
+		auto date_str_end_index = line_length;
+		
+		for(std::size_t i = 0; i < line_length; ++i){
+			if(line[i] == ','){
+				date_str_end_index = i;
+				break;
+			}
+			else date_str += line[i];
+		}
+		
+		//+2 for skipping the comma then space. starts at the first character of the task name.
+		name_str += line.substr(date_str_end_index+2, line_length);	
+		return {date_str, name_str};
+	}
+
 	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
 													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&))
 	{
@@ -105,7 +126,7 @@ namespace task_io_internal{
 			//if both are true, it means this line is defining another group inside of a group which we don't want.
 			//We simply warn the user and move on to the next line.
 			
-			//1.
+			//1. (if either condition is met, move on to next line)
 			const bool nested_group = (line.back() == '{') && fetching_group;
 			if(nested_group){
 				const std::string nested_group_name = line.substr(0, line.size() - 1);;
@@ -119,26 +140,9 @@ namespace task_io_internal{
 				continue;
 			}
 			
-			//2.
+			//2. (both fallthrough)
 			if(line == "}") fetching_group = false;
-			else{
-				std::string date_str; date_str.reserve(10);
-				std::string name_str; name_str.reserve(20);
-				
-				const auto line_length = line.size();
-				auto date_str_end_index = line_length; //default
-				
-				for(std::size_t i = 0; i < line_length; ++i){
-					if(line[i] == ','){
-						date_str_end_index = i;
-						break;
-					}
-					else date_str += line[i];
-				}
-				
-				name_str += line.substr(date_str_end_index+2, line_length);				
-				fetching_taskstr_group.taskstrs.emplace_back(date_str, name_str);
-			}
+			else fetching_taskstr_group.taskstrs.push_back(line_to_TaskStr(line));
 			
 			//3.
 			const bool last_line = line_i + 1 == line_count;

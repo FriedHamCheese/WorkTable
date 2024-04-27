@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 
 namespace test_task_io_internal{
@@ -13,8 +14,43 @@ namespace test_task_io_internal{
 	
 	inline void _test_nested_group_callback(const char* const callsite_filename, const int callsite_line, 
 										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name)
-	{_test_nested_group_warning_count++;}	
+	{_test_nested_group_warning_count++;}
 	
+	
+	inline void test_get_raw_file__non_existent_file(){
+		try{
+			task_io_internal::get_raw_file("ejoijedijdoij.mpeg");
+		}catch(const std::runtime_error& cant_open_file){
+			return;
+		}
+		
+		const bool cant_open_file = true;
+		assert(!cant_open_file);
+	}
+	
+	inline void test_get_raw_file(){
+		constexpr const char* const expected_result = "abcdefg\nhijk";
+		
+		const task_io_internal::file_buffer file_buffer = task_io_internal::get_raw_file("./tests/get_raw_file_test.txt");
+		
+		assert(strlen(expected_result) == file_buffer.second);
+		assert(strncmp(expected_result, file_buffer.first.get(), file_buffer.second) == 0);
+	}
+	
+	inline void test_buffer_to_separated_lines(){
+		constexpr const char* const buffer_input = "h\n\n\n\ni, im ok!\n\nyep";
+		std::unique_ptr<char[]> unique_ptr_input(new char[strlen(buffer_input) + 1]);
+		strcpy(unique_ptr_input.get(), buffer_input);
+		
+		const std::vector<std::string> expected_result = {
+			"h",
+			"i, im ok!",
+			"yep"
+		};
+		
+		const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines({std::move(unique_ptr_input), strlen(buffer_input)});
+		assert(lines == expected_result);
+	}
 	
 	inline void test_lines_to_TaskStrGroup(){
 		const std::vector<task_io_internal::TaskStrGroup> expected_result{
@@ -26,24 +62,10 @@ namespace test_task_io_internal{
 		
 		const task_io_internal::file_buffer file_buffer = task_io_internal::get_raw_file("./tests/nested_grouping_test.txt");
 		const std::vector<std::string> lines = task_io_internal::buffer_to_separated_lines(file_buffer);
-		const std::vector<task_io_internal::TaskStrGroup> TaskStrGroup_vector = task_io_internal::lines_to_TaskStrGroup(lines, _test_nested_group_callback);
-		assert(_test_nested_group_warning_count == _test_expected_nested_group_warning_count);
-		
-		const size_t TaskStrGroup_count = TaskStrGroup_vector.size();
-		for(std::size_t taskstr_group_i = 0; taskstr_group_i < TaskStrGroup_count; taskstr_group_i++){
-			const task_io_internal::TaskStrGroup& expected_taskstr_group = expected_result[taskstr_group_i];
-			const task_io_internal::TaskStrGroup& current_taskstr_group = TaskStrGroup_vector[taskstr_group_i];
-			
-			assert(expected_taskstr_group.group_name == current_taskstr_group.group_name);
-			
-			const size_t taskstr_count = current_taskstr_group.taskstrs.size();
-			
-			for(std::size_t taskstr_i = 0; taskstr_i < taskstr_count; taskstr_i++){
-				assert(expected_taskstr_group.taskstrs[taskstr_i].due_date == current_taskstr_group.taskstrs[taskstr_i].due_date);
-				assert(expected_taskstr_group.taskstrs[taskstr_i].name == current_taskstr_group.taskstrs[taskstr_i].name);					
-			}
-		}
-	}
+		const std::vector<task_io_internal::TaskStrGroup> TaskStrGroup_vector = task_io_internal::lines_to_TaskStrGroup(lines, _test_nested_group_callback);		
+		assert(TaskStrGroup_vector == expected_result);
+		assert(_test_nested_group_warning_count == 2);
+	}	
 	
 	inline void test_TaskStrGroups_to_TaskGroups(){
 		const std::vector<TaskGroup> expected_result{
@@ -58,28 +80,16 @@ namespace test_task_io_internal{
 		const std::vector<task_io_internal::TaskStrGroup> TaskStrGroup_vector = task_io_internal::lines_to_TaskStrGroup(lines);
 		const std::vector<TaskGroup> taskgroups = task_io_internal::TaskStrGroups_to_TaskGroups(TaskStrGroup_vector);
 		
-		const std::size_t taskgroup_count = taskgroups.size();
-		assert(taskgroup_count == expected_result.size());
-		
-		for(std::size_t taskgroup_i = 0; taskgroup_i < taskgroup_count; taskgroup_i++){
-			const TaskGroup& expected_taskgroup = expected_result[taskgroup_i];
-			const TaskGroup& current_taskgroup = taskgroups[taskgroup_i];
-			
-			assert(expected_taskgroup.group_name == current_taskgroup.group_name);
-			const std::size_t task_count = current_taskgroup.tasks.size();
-			assert(expected_taskgroup.tasks.size() == task_count);
-			
-			for(std::size_t task_i = 0; task_i < task_count; task_i++){
-				assert(expected_taskgroup.tasks[task_i].name() == current_taskgroup.tasks[task_i].name());
-				assert(expected_taskgroup.tasks[task_i].due_date() == current_taskgroup.tasks[task_i].due_date());
-				assert(expected_taskgroup.tasks[task_i].days_remaining() == current_taskgroup.tasks[task_i].days_remaining());				
-			}
-		}
+		assert(taskgroups == expected_result);
 	}
 }
 
 
 inline void test_suite_task_io(){
+	test_task_io_internal::test_get_raw_file__non_existent_file();
+	test_task_io_internal::test_get_raw_file();
+	test_task_io_internal::test_buffer_to_separated_lines();
+	
 	test_task_io_internal::test_lines_to_TaskStrGroup();
 	test_task_io_internal::test_TaskStrGroups_to_TaskGroups();
 }
