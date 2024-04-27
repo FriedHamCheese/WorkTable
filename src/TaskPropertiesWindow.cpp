@@ -130,9 +130,16 @@ void TaskPropertiesWindow::add_task(){
 	try{
 		this->warning_message.label("");	
 		
-		const bool task_has_name = strcmp(this->task_name_dialog.value(), "") != 0;
+		const std::size_t task_name_length = strlen(this->task_name_dialog.value());
+		const bool task_has_name = task_name_length > 0;
 		if(!task_has_name){
 			this->warning_message.label("Please name the task.");
+			return;
+		}
+		const char last_task_name_character = (this->task_name_dialog.value())[task_name_length - 1];
+		const char group_definition_character = '{';
+		if(last_task_name_character == group_definition_character){
+			this->warning_message.label("The last character of the task name cannot be '{'.");
 			return;
 		}
 		
@@ -176,11 +183,18 @@ void TaskPropertiesWindow::modify_task(){
 	try{
 		this->warning_message.label("");
 		
-		const bool task_name_is_empty = strlen(this->task_name_dialog.value()) <= 0;
-		if(task_name_is_empty){
+		const std::size_t task_name_length = strlen(this->task_name_dialog.value());		
+		if(task_name_length == 0){
 			this->warning_message.label("Please name the task.");
 			return;
 		}
+		const char last_task_name_character = (this->task_name_dialog.value())[task_name_length - 1];
+		const char group_definition_character = '{';
+		if(last_task_name_character == group_definition_character){
+			this->warning_message.label("The last character of the task name cannot be '{'.");
+			return;
+		}
+				
 		
 		std::chrono::year_month_day new_due_date;
 		try{
