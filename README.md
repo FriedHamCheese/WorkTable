@@ -9,6 +9,9 @@ WorkTable is a simple assignment list program which uses bars with different len
 
 
 # Building the program
+## Compiled exectuable
+In the release section of this repo, a compiled build using Windows 10 build 19045 and mingw-w64-x86_64-gcc 13.2.0-6 in MSYS2 environment. I have no clue on how to release a binary release lol. So give that a try and see how that goes :D
+
 ## Prerequisites
 + A compiler which supports C++20
 + Make
@@ -39,7 +42,7 @@ FLTK_CXXFLAGS := -I/mingw64/include -march=nocona -msahf -mtune=generic -pipe -W
 FLTK_LDFLAGS := -L/mingw64/lib -pipe -Wl,-subsystem,windows -mwindows -lfltk -lole32 -lcomctl32 -lws2_32
 ```
 4. Run Make with no specific target in the project directory.
-5. The executable is located in bin as build.exe. Since the compiler and linker is called from the project directory rather than the ./src directory, you should not enter ./bin and run build.exe directly, rather you would run it as ./bin/build.exe from the project directory.
+5. The executable is located in bin as build.exe. The tasks.txt file will be searched and created by the executable from the directory it was called from. For example, navigating to the bin directory then running the executable would result in the task file to be in the bin directory. Running it from the project directory by calling ./bin/build.exe would result the file to be in the project directory, etc... Just a tip. :D
 6. (Optional) Developer documentation in html Doxygen.
    Navigate to the doc folder and run `Doxygen docconf` to generate the offline html documentation.
    The landing page of the documentation is in ./doc/html/index.html.
