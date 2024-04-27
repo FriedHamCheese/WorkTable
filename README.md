@@ -10,7 +10,7 @@ WorkTable is a simple assignment list program which uses bars with different len
 
 # Building the program
 ## Compiled exectuable
-In the release section of this repo, a compiled build using Windows 10 build 19045 and mingw-w64-x86_64-gcc 13.2.0-6 in MSYS2 environment. I have no clue on how to release a binary release lol. So give that a try and see how that goes :D
+In the release section of this repo, a compiled build using Windows 10 build 19045 and mingw-w64-x86_64-gcc 13.2.0-6 in MSYS2 environment is provided. I have no clue on how to release a binary release lol. So give that a try and see how that goes :D
 
 ## Prerequisites
 + A compiler which supports C++20
