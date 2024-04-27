@@ -46,9 +46,12 @@ class BarGroup : public Fl_Group{
 	
 	///Constucts a new Bar which represent the provided task, readjust vertical scale, and redraw BarGroup.
 	void add_task(const Task& task);
-	///Deletes the Bar at given index, readjust vertical scale, and redraw BarGroup. 
-	///The Bar may either represent a task or a group.
-	///\returns false if the index refers to an invalid Bar or the index is invalid for this->paged_taskgroups if in group view, else true.
+	/**
+	Deletes the Bar at given index, readjust vertical scale, and redraw BarGroup. 
+	The Bar may either represent a task or a group.
+	
+	If the index refers to an invalid Bar or the index is invalid for this->paged_taskgroups, it does nothing and returns false. Else returns true.
+	*/
 	bool delete_bar(const int item_index);
 	///Request the Bar at the provided index to change its task properties accordingly. This redraws BarGroup.
 	///

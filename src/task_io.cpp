@@ -113,11 +113,11 @@ namespace task_io_internal{
 	std::vector<TaskStrGroup> lines_to_TaskStrGroup(const std::vector<std::string>& lines, 
 													void(*nested_group_callback)(const char*, const int, const std::string&, const std::string&))
 	{
-		//this keeps all the TaskStrGroups fetched, which can either be a single task in TaskStrGroup or a multiple.
+		//this keeps all the TaskStrGroups fetched, which each can either be a single task in TaskStrGroup or a multiple.
 		std::vector<TaskStrGroup> task_str_groups; 
-		task_str_groups.reserve(20);
+		task_str_groups.reserve(lines.size());
 		
-		TaskStrGroup fetching_taskstr_group;		
+		TaskStrGroup fetching_taskstr_group;
 		
 		bool fetching_group = false;
 		const std::size_t line_count = lines.size();
@@ -126,19 +126,19 @@ namespace task_io_internal{
 			There are 3 parts of the code:
 			1. Detect group definition (line which ends with {).
 			   If there is a group definition, move on from the current line to next.
-			2. If the line isn't a group end character, fetch the date and name of a task, 
-			   to fetching_taskstr_group which either can be fetching to a group or to an independent task.
+			2. If the line isn't a group end character, fetch the date and name of a task 
+			   to fetching_taskstr_group, which either can be fetching to a group or to a single task.
 			3. If we either reached a group end character in this line or was fetching an independent task, or reached the last line:
 			   we save the fetching_taskstr_group to task_str_groups.
 			*/
 			const std::string& line = lines[line_i];
-			
+
+			//1. (if either condition is met, move on to next line)		
 			//We check if this line has the { indicating the line is defining a new group,
-			//and if the code is already is fetching the tasks of previous group member
-			//if both are true, it means this line is defining another group inside of a group which we don't want.
+			//and if the code is already is fetching the tasks of previous group.
+			//If both are true, it means this line is defining another group inside of a group which we don't want.
 			//We simply warn the user and move on to the next line.
 			
-			//1. (if either condition is met, move on to next line)
 			const bool nested_group = (line.back() == '{') && fetching_group;
 			if(nested_group){
 				const std::string nested_group_name = line.substr(0, line.size() - 1);;
@@ -152,11 +152,11 @@ namespace task_io_internal{
 				continue;
 			}
 			
-			//2. (both fallthrough)
+			//2. 
 			if(line == "}") fetching_group = false;
 			else fetching_taskstr_group.taskstrs.push_back(line_to_TaskStr(line));
 			
-			//3.
+			//3.(fallthrough from 2. for both cases)
 			const bool last_line = line_i + 1 == line_count;
 			if(!fetching_group || last_line){
 				if(fetching_taskstr_group.taskstrs.size() > 0){

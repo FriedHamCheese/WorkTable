@@ -212,14 +212,14 @@ int Bar::handle(const int event){
 	*/
 	switch(event){
 		//We don't respond directly when the mouse is clicked,
-		//we wait for a mouse release button, as we need to differentiate a click-only from click-drag.
+		//we wait for a mouse release button. As we need to differentiate a click-only from click-drag.
 		case FL_PUSH:
 			return handled_event;
 		
 		case FL_RELEASE:{
 			//you can also drag and drop in the same bar and it would register as a click as well,
-			//because every drag has a mouse click; we could try to discern between a drag and a click,
-			//but I think this is fine.
+			//because every drag has a mouse click. 
+			//We could try to discern between a drag and a click, but I think this is fine.
 			const bool clicked_and_released_same_bar = Fl::event_inside(this) != 0;
 			if(clicked_and_released_same_bar){
 				const int clicked_button = Fl::event_button();

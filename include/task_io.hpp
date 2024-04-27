@@ -33,7 +33,7 @@ as well as utilities for converting types related to Task to std::string equival
 namespace task_io_internal{
 	/**
 	A string equivalent of Task. 
-	This is used when fetching tasks from the task file and then converted to a Task.
+	This is used when fetching tasks from the task file and then be converted to a Task.
 	*/
 	struct TaskStr{
 		std::string due_date;
@@ -53,7 +53,7 @@ namespace task_io_internal{
 
 	/**
 	A string equivalent of TaskGroup.
-	This is used when fetching tasks and groups from the task file and then converted to a TaskGroup.	
+	This is used when fetching tasks and groups from the task file and then be converted to a TaskGroup.	
 	*/
 	struct TaskStrGroup{
 		std::string group_name;
@@ -67,11 +67,12 @@ namespace task_io_internal{
 	///Returns true if TaskStrGroup::group_name or TaskStrGroup::taskstrs of both are not the same.	
 	inline bool operator!=(const TaskStrGroup& lhs, const TaskStrGroup& rhs){
 		return !(lhs == rhs);
-	}	
+	}
+
 	
 	using file_buffer = std::pair<std::unique_ptr<char[]>, std::size_t>;
 	
-	///Reads entire contents of filename and returns {characters, character count}.
+	///Reads entire contents of filename and returns {characters (no null terminator), character count}.
 	///May throw std::ios_base_failure for unknown I/O error, or std::runtime_error if the file could not be opened.
 	file_buffer get_raw_file(const std::string& filename);
 
@@ -88,9 +89,9 @@ namespace task_io_internal{
 	Constructs a TaskStr from the provided line in "yyyy/(m)m/(d)d, task name" format.
 	
 	There are a few things that can go wrong and the behaviour of the function are as follows:	
-	- A task with the due date in an improper format but still has a comma and space after it, would not be seen as an error, as this function only fetches the string and TaskStr only carries the fetched string.
-	- A task with the due date in valid format but invalid due date would also not be an error.
-	- A task without the comma after due date would have no name, and likely would be an invalid due date because the due date string would be fetched to the end of the line.
+	- A task with the due date in an improper format but still has a comma and space after it, would not be seen as an error. As this function only fetches the string and the TaskStr only keeps the copy of the string.
+	- A task with the due date in valid format but has invalid due date would also not be an error.
+	- A task without the comma after due date would have no name. And likely would be an invalid due date because the due date string would be fetched to the end of the line.
 	- A task without the space after the comma would lose the first character of the task name.	
 	*/
 	TaskStr line_to_TaskStr(const std::string& line);
@@ -102,10 +103,10 @@ namespace task_io_internal{
 	- The behaviours of line_to_TaskStr(const std::string& line) when fetching a string and converting it to a TaskStr.
 	
 	- A valid group without name would result in a valid group with no group name.
-	- If the function was not fetching for tasks in a group and the line is a single }, the line does nothing.
-	- A group without ending its scope (has no }) would result in every task after the group definition to be in the group.
+	- If the function was not fetching for tasks in a group and the line is a single }, the line means nothing.
+	- A group without its scope ending (has no }) would result in every task after the group definition to be in the group.
 	- The function does not care if the end scope character matches. Once it reaches one, the function ends the fetching of tasks of a group.
-	- If the code already was fetching for tasks of a group and the current line defines another group, the code simply warns the nesting of a group, and moves on to fetch tasks to the group before the line.
+	- If the code already was fetching for tasks of a group and the current line defines another group, the code simply warns the nesting of a group, and moves on to fetch tasks to the former group.
 	
 	We chose to display a window rather than throwing an exception, simply because it is a small error.
 	*/
