@@ -16,6 +16,8 @@ WorkTable is a simple assignment list program which uses bars with different len
 + Doxygen (optional, documentation for developers)
 
 ## Building FLTK
+WorkTable is based in part on the work of the FLTK project (http://www.fltk.org).
+
 Follow the official building procedures from [FLTK documentation](https://www.fltk.org/doc-1.3/intro.html).
 
 ## Building WorkTable

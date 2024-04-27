@@ -60,4 +60,6 @@ There are inconsistent additional catches of std::bad_alloc and std::length_erro
 They can provide better explanation when something goes wrong, but memory errors seems rare. Hence the inconsistency of the newer catches not having those.
   
 That's all I have to say. Happy coding!
+
+WorkTable is based in part on the work of the FLTK project (http://www.fltk.org).
 */
