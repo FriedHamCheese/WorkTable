@@ -52,13 +52,23 @@ namespace task_io_internal{
 	
 	///Separates lines from the given buffer of characters. The newline character is the separator.
 	std::vector<std::string> buffer_to_separated_lines(const file_buffer& buffer);
+	
+	/**
+	Constructs a TaskStr from the provided line in "yyyy/(m)m/(d)d, task name" format.
+	
+	There are a few things that can go wrong and the behaviour of the function are as follows:	
+	- A task with the due date in an improper format but still has a comma and space after it, would not be seen as an error, as this function only fetches the string and TaskStr only carries the fetched string.
+	- A task with the due date in valid format but invalid due date would also not be an error.
+	- A task without the comma after due date would have no name, and likely would be an invalid due date because the due date string would be fetched to the end of the line.
+	- A task without the space after the comma would lose the first character of the task name.	
+	*/
+	TaskStr line_to_TaskStr(const std::string& line);
+	
 	/**
 	Parses raw lines to TaskStrGroup, its default callback will pop up a window if an instance of nested group is present in task file. 
 	
 	There are a few things that can go wrong and the behaviour of the function are as follows:
-	- A task with invalid due date but valid format would pass through. This function only fetches the string, not convert.
-	- A task without the comma after due date would have no name, and highly would be an invalid due date because the due date string would be fetched to the end of the line.
-	- A task without the space after the comma would lose the first character of the task name.
+	- The behaviours of line_to_TaskStr(const std::string& line) when fetching a string and converting it to a TaskStr.
 	
 	- A valid group without name would result in a valid group with no group name.
 	- If the function was not fetching for tasks in a group and the line is a single }, the line does nothing.
