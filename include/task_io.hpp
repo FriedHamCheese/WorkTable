@@ -30,6 +30,15 @@ namespace task_io_internal{
 		TaskStr(const std::string& due_date, const std::string& name);
 	};
 	
+	///Returns true if TaskStr::due_date and TaskStr::name of both are the same.
+	inline bool operator==(const TaskStr& lhs, const TaskStr& rhs){
+		return (lhs.due_date == rhs.due_date) && (lhs.name == rhs.name);
+	}
+	///Returns true if TaskStr::due_date or TaskStr::name of both are not the same.	
+	inline bool operator!=(const TaskStr& lhs, const TaskStr& rhs){
+		return !(lhs == rhs);
+	}
+
 	/**
 	A string equivalent of TaskGroup.
 	This is used when fetching tasks and groups from the task file and then converted to a TaskGroup.	
@@ -38,6 +47,15 @@ namespace task_io_internal{
 		std::string group_name;
 		std::vector<TaskStr> taskstrs;
 	};
+	
+	///Returns true if TaskStrGroup::group_name and TaskStrGroup::taskstrs of both are the same.
+	inline bool operator==(const TaskStrGroup& lhs, const TaskStrGroup& rhs){
+		return (lhs.group_name == rhs.group_name) && (lhs.taskstrs == rhs.taskstrs);
+	}
+	///Returns true if TaskStrGroup::group_name or TaskStrGroup::taskstrs of both are not the same.	
+	inline bool operator!=(const TaskStrGroup& lhs, const TaskStrGroup& rhs){
+		return !(lhs == rhs);
+	}	
 	
 	using file_buffer = std::pair<std::unique_ptr<char[]>, std::size_t>;
 	
@@ -51,6 +69,7 @@ namespace task_io_internal{
 										const std::string& first_taskgroup_name, const std::string& second_taskgroup_name);
 	
 	///Separates lines from the given buffer of characters. The newline character is the separator.
+	///The return vector does not contain any line which is empty.
 	std::vector<std::string> buffer_to_separated_lines(const file_buffer& buffer);
 	
 	/**

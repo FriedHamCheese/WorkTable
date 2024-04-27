@@ -20,7 +20,7 @@ class Task{
 	
 	void due_date(const std::chrono::year_month_day& new_due_date);
 	void name(const std::string& new_name);
-
+	
 	static bool due_date_is_earlier(const Task& lhs, const Task& rhs) noexcept;	
 	static bool due_date_is_later(const Task& lhs, const Task& rhs) noexcept;	
 	
@@ -30,9 +30,23 @@ class Task{
 	std::string _name;
 };
 
+inline bool operator==(const Task& lhs, const Task& rhs){
+	return (lhs.name() == rhs.name()) && (lhs.due_date() == rhs.due_date());
+}
+inline bool operator!=(const Task& lhs, const Task& rhs){
+	return !(lhs == rhs);
+}
+
 struct TaskGroup{
 	std::string group_name;
 	std::vector<Task> tasks;
 };
+
+inline bool operator==(const TaskGroup& lhs, const TaskGroup& rhs){
+	return (lhs.group_name == rhs.group_name) && (lhs.tasks == rhs.tasks);
+}
+inline bool operator!=(const TaskGroup& lhs, const TaskGroup& rhs){
+	return !(lhs == rhs);
+}
 
 #endif
