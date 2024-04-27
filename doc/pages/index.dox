@@ -1,3 +1,15 @@
+/*
+Copyright 2024 Pawikan Boonnaum.
+
+This file is part of WorkTable.
+
+WorkTable is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+WorkTable is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with WorkTable. If not, see <https://www.gnu.org/licenses/>.
+*/
+
 /**
 \mainpage Read this before coding!
 
@@ -48,4 +60,6 @@ There are inconsistent additional catches of std::bad_alloc and std::length_erro
 They can provide better explanation when something goes wrong, but memory errors seems rare. Hence the inconsistency of the newer catches not having those.
   
 That's all I have to say. Happy coding!
+
+WorkTable is based in part on the work of the FLTK project (http://www.fltk.org).
 */
